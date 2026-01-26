@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Cloud,
   Search,
@@ -9,6 +10,7 @@ import {
   User,
   Zap,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import Image from "next/image";
@@ -26,83 +28,100 @@ const Navbar = () => {
   const { data } = useSession();
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-slate-950/70 backdrop-blur-xl border-b border-white/5">
+    <nav className="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-md border-b border-white/8 saturate-150">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="bg-indigo-500 p-1.5 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.4)] group-hover:scale-110 transition-transform duration-300">
-              <Cloud className="text-white w-5 h-5" />
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="flex items-center gap-2.5 group cursor-pointer"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-indigo-500 blur-lg opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="relative bg-linear-to-br from-indigo-500 to-purple-600 p-2 rounded-xl border border-white/20 shadow-xl">
+                <Cloud className="text-white w-5 h-5" />
+              </div>
             </div>
             <span className="text-xl font-bold text-white tracking-tight">
-              Neura<span className="text-indigo-400">Drive</span>
+              Neura
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-purple-400">
+                Drive
+              </span>
             </span>
-          </div>
+          </motion.div>
 
           <div className="hidden md:flex flex-1 max-w-md mx-8">
             <div className="relative w-full group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 bg-slate-900/50 border border-white/10 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                className="block w-full pl-10 pr-12 py-2 bg-white/3 border border-white/8 rounded-2xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:bg-white/6transition-all duration-500"
                 placeholder="Ask AI or search files..."
               />
-              <div className="absolute inset-y-0 right-3 flex items-center">
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-slate-800 border border-slate-700 rounded-md">
+              <div className="absolute inset-y-0 right-3 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-500/50" />
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/5 border border-white/10 rounded-md">
                   ⌘K
                 </kbd>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {data?.user ? (
               <>
-                <button className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                <button className="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all">
                   <Bell className="w-5 h-5" />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-black" />
                 </button>
 
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-white/5 transition-all focus:outline-none cursor-pointer">
+                  <DropdownMenuTrigger className="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-white/5 border border-transparent hover:border-white/10 transition-all focus:outline-none cursor-pointer">
                     <div className="relative">
                       <Image
                         src={data.user.image || "/images/default-avatar.png"}
                         width={32}
                         height={32}
                         alt="User"
-                        className="rounded-full border border-white/10"
+                        className="rounded-full ring-1 ring-white/20"
                       />
-                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-slate-950 rounded-full"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-black rounded-full" />
                     </div>
-                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                    <ChevronDown className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
                   </DropdownMenuTrigger>
 
-                  <DropdownMenuContent className="w-56 mt-2 bg-slate-900 border-white/10 text-slate-200 shadow-2xl animate-in fade-in zoom-in duration-200">
-                    <DropdownMenuLabel className="font-normal">
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-64 mt-2 bg-[#0a0a0c] border-white/10 text-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl rounded-2xl p-2 overflow-hidden"
+                  >
+                    <DropdownMenuLabel className="p-3">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none text-white">
+                        <p className="text-sm font-semibold text-white">
                           {data.user.name}
                         </p>
-                        <p className="text-xs leading-none text-slate-500">
+                        <p className="text-xs text-slate-500 font-medium">
                           {data.user.email}
                         </p>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-white/5" />
-                    <DropdownMenuItem className="focus:bg-white/5 focus:text-white cursor-pointer gap-2">
-                      <User className="w-4 h-4" /> Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="focus:bg-white/5 focus:text-indigo-400 cursor-pointer gap-2">
-                      <Zap className="w-4 h-4" /> Upgrade to Pro
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="focus:bg-white/5 focus:text-white cursor-pointer gap-2">
-                      <Settings className="w-4 h-4" /> Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-white/5" />
+                    <DropdownMenuSeparator className="bg-white/5 mx-2" />
+                    <div className="space-y-1 p-1">
+                      <DropdownMenuItem className="rounded-lg py-2.5 focus:bg-white/5 cursor-pointer gap-3">
+                        <User className="w-4 h-4 text-slate-400" /> Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="rounded-lg py-2.5 focus:bg-indigo-500/10 focus:text-indigo-400 cursor-pointer gap-3">
+                        <Zap className="w-4 h-4 text-indigo-400" /> Upgrade to
+                        Pro
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="rounded-lg py-2.5 focus:bg-white/5 cursor-pointer gap-3">
+                        <Settings className="w-4 h-4 text-slate-400" /> Settings
+                      </DropdownMenuItem>
+                    </div>
+                    <DropdownMenuSeparator className="bg-white/5 mx-2" />
                     <DropdownMenuItem
                       onClick={() => signOut()}
-                      className="focus:bg-red-500/10 focus:text-red-400 text-red-400 cursor-pointer gap-2"
+                      className="m-1 rounded-lg py-2.5 focus:bg-red-500/10 focus:text-red-400 text-red-400 cursor-pointer gap-3"
                     >
                       <LogOut className="w-4 h-4" /> Sign Out
                     </DropdownMenuItem>
@@ -110,9 +129,7 @@ const Navbar = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <div className="hover:scale-105 transition-transform duration-200">
-                <SignInBtn />
-              </div>
+              <SignInBtn />
             )}
           </div>
         </div>
