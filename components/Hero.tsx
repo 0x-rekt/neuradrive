@@ -1,121 +1,77 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  BrainCircuit,
-  Zap,
-} from "lucide-react";
-import { Button } from "./ui/button";
+import { Zap } from "lucide-react";
 
 const Hero = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15, delayChildren: 0.3 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
-    visible: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      transition: { duration: 0.8 },
-    },
-  };
-
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#020203] pt-20">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/10 blur-[120px]" />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+    <section className="relative pt-40 pb-24 overflow-hidden bg-black">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8"
-        >
-          <motion.div variants={itemVariants} className="flex justify-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Next-Gen Semantic File Management</span>
-            </div>
-          </motion.div>
-
-          <motion.h1
-            variants={itemVariants}
-            className="text-5xl md:text-6xl font-bold tracking-tight text-white"
-          >
-            Your Files, <br />
-            <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-400 via-purple-400 to-indigo-400 animate-gradient-x">
-              Powered by Intelligence.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            variants={itemVariants}
-            className="max-w-2xl mx-auto text-lg text-slate-400 leading-relaxed"
-          >
-            Experience the first AI-native cloud drive. Search by meaning, chat
-            with documents, and transform handwritten notes into structured
-            insights instantly.
-          </motion.p>
-
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
-          >
-            <Button className="h-14 px-8 rounded-2xl bg-white text-black hover:bg-slate-200 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.15)] group transition-all cursor-pointer">
-              Get Started
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-16 border-t border-white/5"
-          >
-            <div className="flex flex-col items-center gap-2">
-              <div className="p-2 rounded-lg bg-white/5 border border-white/10 mb-2">
-                <BrainCircuit className="w-5 h-5 text-indigo-400" />
-              </div>
-              <h3 className="text-white font-medium">Semantic Search</h3>
-              <p className="text-sm text-slate-500">
-                Find files by concepts, not just names.
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="p-2 rounded-lg bg-white/5 border border-white/10 mb-2">
-                <Zap className="w-5 h-5 text-purple-400" />
-              </div>
-              <h3 className="text-white font-medium">Auto-Summary</h3>
-              <p className="text-sm text-slate-500">
-                Instant TL;DR for long PDFs & docs.
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="p-2 rounded-lg bg-white/5 border border-white/10 mb-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              </div>
-              <h3 className="text-white font-medium">Secure RAG</h3>
-              <p className="text-sm text-slate-500">
-                Encrypted embeddings for total privacy.
-              </p>
-            </div>
-          </motion.div>
-        </motion.div>
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.08, 0.12, 0.08],
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-600 blur-[140px] rounded-full"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.05, 0.1, 0.05],
+          }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="absolute bottom-0 right-[-10%] w-[40%] h-[40%] bg-violet-700 blur-[140px] rounded-full"
+        />
       </div>
 
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-125 bg-indigo-600/5 rounded-full blur-[160px] pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-4 text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/3 border border-white/8 text-indigo-300 text-xs font-medium mb-8 backdrop-blur-md"
+        >
+          <Zap className="w-3.5 h-3.5 fill-indigo-400" />
+          <span className="tracking-wider uppercase">
+            Neural Engine v2.0 Active
+          </span>
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter"
+        >
+          Storage with <br />
+          <span className="text-transparent bg-clip-text bg-linear-to-b from-indigo-400 via-purple-400 to-violet-500">
+            A Higher Mind.
+          </span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed"
+        >
+          Experience NeuraDrive. A void-black ecosystem where your files don't
+          just exist—they evolve through Gemini-powered intelligence.
+        </motion.p>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="px-10 py-4 bg-white text-black rounded-full font-bold transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] cursor-pointer"
+          >
+            Deploy NeuraDrive
+          </motion.button>
+          <button className="px-10 py-4 bg-transparent text-white rounded-full font-medium border border-white/10 hover:bg-white/5 transition-all cursor-pointer">
+            System Overview
+          </button>
+        </div>
+      </div>
     </section>
   );
 };
