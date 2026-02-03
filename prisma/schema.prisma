@@ -73,7 +73,7 @@ model Verification {
 }
 
 model Folder {
-  id        String   @id
+  id        String   @id @default(cuid())
   name      String
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -89,7 +89,7 @@ model Folder {
 }
 
 model File {
-  id        String   @id
+  id        String   @id @default(cuid())
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   name      String
