@@ -7,7 +7,7 @@ import axios from "axios";
 
 const Uploader = () => {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<
     "idle" | "success" | "error"
@@ -16,33 +16,35 @@ const Uploader = () => {
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!selectedFile) return;
+    if (selectedFiles.length === 0) return;
 
     setIsUploading(true);
     setUploadStatus("idle");
 
     try {
-      const response = await axios.post("/api/upload", {
-        fileName: selectedFile.name,
-        fileType: selectedFile.type,
-      });
-      const { signedUrl } = response.data;
+      for (const file of selectedFiles) {
+        const response = await axios.post("/api/upload", {
+          fileName: file.name,
+          fileType: file.type,
+        });
+        const { signedUrl } = response.data;
 
-      await axios.put(signedUrl, selectedFile, {
-        headers: {
-          "Content-Type": selectedFile.type,
-        },
-      });
+        await axios.put(signedUrl, file, {
+          headers: {
+            "Content-Type": file.type,
+          },
+        });
 
-      await axios.post("/api/save", {
-        fileName: selectedFile.name,
-        fileType: selectedFile.type,
-        fileUrl: signedUrl.split("?")[0],
-        size: selectedFile.size,
-      });
+        await axios.post("/api/save", {
+          fileName: file.name,
+          fileType: file.type,
+          fileUrl: signedUrl.split("?")[0],
+          size: file.size,
+        });
+      }
 
       setUploadStatus("success");
-      setSelectedFile(null);
+      setSelectedFiles([]);
     } catch (error) {
       console.error("Upload failed", error);
       setUploadStatus("error");
@@ -51,8 +53,8 @@ const Uploader = () => {
     }
   };
 
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file);
+  const handleFileSelect = (files: File[]) => {
+    setSelectedFiles(files);
     setUploadStatus("idle");
   };
 
@@ -70,16 +72,16 @@ const Uploader = () => {
     e.preventDefault();
     setIsDragOver(false);
 
-    const files = e.dataTransfer.files;
+    const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleFileSelect(files[0]);
+      handleFileSelect(files);
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFileSelect(files[0]);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      handleFileSelect(files);
     }
   };
 
@@ -159,13 +161,14 @@ const Uploader = () => {
               className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer ${
                 isDragOver
                   ? "border-indigo-400 bg-indigo-400/10"
-                  : selectedFile
+                  : selectedFiles
                     ? "border-green-400 bg-green-400/5"
                     : "border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10"
               }`}
             >
               <input
                 type="file"
+                multiple
                 onChange={handleFileInputChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 accept="*/*"
@@ -176,18 +179,22 @@ const Uploader = () => {
                 transition={{ duration: 0.2 }}
                 className="space-y-4"
               >
-                {selectedFile ? (
+                {selectedFiles.length > 0 ? (
                   <div className="flex flex-col items-center space-y-4">
                     <div className="p-4 bg-green-400/10 rounded-full">
                       <File className="w-12 h-12 text-green-400" />
                     </div>
                     <div>
                       <p className="text-white font-medium text-lg">
-                        {selectedFile.name}
+                        {selectedFiles.length === 1
+                          ? selectedFiles[0].name
+                          : `${selectedFiles.length} files selected`}
                       </p>
-                      <p className="text-slate-500 text-sm">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+                      {selectedFiles.length === 1 && (
+                        <p className="text-slate-500 text-sm">
+                          {(selectedFiles[0].size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -198,8 +205,8 @@ const Uploader = () => {
                     <div>
                       <p className="text-white font-medium text-xl mb-2">
                         {isDragOver
-                          ? "Drop your file here"
-                          : "Drag & drop your file here"}
+                          ? "Drop your files here"
+                          : "Drag & drop your files here"}
                       </p>
                       <p className="text-slate-500">or click to browse files</p>
                     </div>
@@ -208,7 +215,7 @@ const Uploader = () => {
               </motion.div>
             </div>
 
-            {selectedFile && (
+            {selectedFiles.length > 0 && (
               <motion.button
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -224,7 +231,7 @@ const Uploader = () => {
                     <span>Uploading...</span>
                   </div>
                 ) : (
-                  "Upload File"
+                  `Upload ${selectedFiles.length === 1 ? "File" : "Files"}`
                 )}
               </motion.button>
             )}

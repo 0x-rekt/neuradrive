@@ -96,8 +96,8 @@ model File {
   size      Int
   type      String
   url       String
-  folderId  String   @default("")
-  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  folderId  String?   @default("")
+  folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

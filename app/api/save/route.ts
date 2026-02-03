@@ -20,6 +20,14 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
+  console.log("Name:", fileName);
+  console.log("Folder ID:", folderId);
+  console.log("Owner ID:", session.user.id);
+  console.log("Size:", size);
+  console.log("Type:", fileType);
+  console.log("URL:", fileUrl);
+  console.log("Folder ID:", folderId);
+
   try {
     const file = await prisma.file.create({
       data: {
@@ -28,7 +36,7 @@ export const POST = async (req: NextRequest) => {
         url: fileUrl,
         size: size,
         ownerId: session.user.id,
-        ...(folderId && { folderId }),
+        folderId: folderId || null,
       },
     });
     return NextResponse.json({ file }, { status: 201 });
