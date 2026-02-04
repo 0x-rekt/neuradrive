@@ -77,7 +77,7 @@ model Folder {
   name      String
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parentId  String?  @default("")
+  parentId  String?
   parent    Folder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Cascade)
   children  Folder[] @relation("FolderToFolder")
   files     File[]
@@ -95,12 +95,21 @@ model File {
   name      String
   size      Int
   type      String
-  url       String
-  folderId  String?   @default("")
+  s3Key     String
+  folderId  String?
   folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  status    FileStatus   @default(UPLOADED)
+  textContent String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([folderId])
   @@map("file")
+}
+
+enum FileStatus {
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
 }

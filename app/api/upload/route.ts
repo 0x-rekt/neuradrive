@@ -17,7 +17,7 @@ export const POST = async (req: NextRequest) => {
   const signedUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
 
   return NextResponse.json(
-    { signedUrl },
+    { signedUrl, key },
     {
       status: 200,
     },

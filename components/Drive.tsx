@@ -27,7 +27,8 @@ interface DriveProps {
 }
 
 const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
-  const currentFolderId = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+  const currentFolderId =
+    currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
   const [showUploader, setShowUploader] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -52,7 +53,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
           fileName: file.name,
           fileType: file.type,
         });
-        const { signedUrl } = response.data;
+        const { signedUrl, key } = response.data;
 
         await axios.put(signedUrl, file, {
           headers: {
@@ -63,7 +64,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
         await axios.post("/api/save", {
           fileName: file.name,
           fileType: file.type,
-          fileUrl: signedUrl.split("?")[0],
+          s3Key: key,
           size: file.size,
           folderId: currentFolderId,
         });
@@ -90,7 +91,6 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
       });
       setFolderName("");
       setShowCreateFolderDialog(false);
-      window.location.reload();
     } catch (error) {
       console.error("Failed to create folder", error);
     } finally {
@@ -125,11 +125,25 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
         {currentPath.length > 0 && (
           <div className="mb-6">
             <Link
-              href={currentPath.length === 1 ? "/drive" : `/drive/${currentPath.slice(0, -1).join('/')}`}
+              href={
+                currentPath.length === 1
+                  ? "/drive"
+                  : `/drive/${currentPath.slice(0, -1).join("/")}`
+              }
               className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               Back
             </Link>
@@ -324,7 +338,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                   className="group relative bg-white/2 border border-white/5 hover:border-indigo-500/40 hover:bg-white/4 p-4 rounded-2xl transition-all duration-300"
                 >
                   <Link
-                    href={`/drive/${[...currentPath, folder.id].join('/')}`}
+                    href={`/drive/${[...currentPath, folder.id].join("/")}`}
                     className="flex items-center gap-4"
                   >
                     <div className="bg-indigo-500/10 p-3 rounded-xl group-hover:scale-110 transition-transform">

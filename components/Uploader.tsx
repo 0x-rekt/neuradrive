@@ -27,7 +27,7 @@ const Uploader = () => {
           fileName: file.name,
           fileType: file.type,
         });
-        const { signedUrl } = response.data;
+        const { signedUrl, key } = response.data;
 
         await axios.put(signedUrl, file, {
           headers: {
@@ -38,7 +38,7 @@ const Uploader = () => {
         await axios.post("/api/save", {
           fileName: file.name,
           fileType: file.type,
-          fileUrl: signedUrl.split("?")[0],
+          s3Key: key,
           size: file.size,
         });
       }

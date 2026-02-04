@@ -11,32 +11,25 @@ export const POST = async (req: NextRequest) => {
   if (!session?.user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { fileName, fileType, fileUrl, size, folderId } = await req.json();
+  const { fileName, fileType, s3Key, size, folderId } = await req.json();
 
-  if (!fileName || !fileType || !fileUrl || !size) {
+  if (!fileName || !fileType || !s3Key || !size) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 },
     );
   }
 
-  console.log("Name:", fileName);
-  console.log("Folder ID:", folderId);
-  console.log("Owner ID:", session.user.id);
-  console.log("Size:", size);
-  console.log("Type:", fileType);
-  console.log("URL:", fileUrl);
-  console.log("Folder ID:", folderId);
-
   try {
     const file = await prisma.file.create({
       data: {
         name: fileName,
         type: fileType,
-        url: fileUrl,
+        s3Key: s3Key,
         size: size,
         ownerId: session.user.id,
         folderId: folderId || null,
+        status: "UPLOADED",
       },
     });
     return NextResponse.json({ file }, { status: 201 });
