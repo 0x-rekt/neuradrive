@@ -29,7 +29,7 @@ const Page = async () => {
     orderBy: { createdAt: "desc" },
   });
 
-  return <Drive folders={folders} files={files} />;
+  return <Drive folders={folders} files={files} currentPath={[]} />;
 };
 
 export default Page;

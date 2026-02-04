@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   Folder as FolderIcon,
   FileText,
@@ -11,15 +12,96 @@ import {
   File,
   Clock,
   HardDrive,
+  Upload,
+  CheckCircle,
+  X,
+  Plus,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import axios from "axios";
 
 interface DriveProps {
   folders: any[];
   files: any[];
+  currentPath: string[];
 }
 
-const Drive = ({ folders = [], files = [] }: DriveProps) => {
+const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
+  const currentFolderId = currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+  const [showUploader, setShowUploader] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+  const [folderName, setFolderName] = useState("");
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
+
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (selectedFiles.length === 0) return;
+
+    setIsUploading(true);
+    setUploadStatus("idle");
+
+    try {
+      for (const file of selectedFiles) {
+        const response = await axios.post("/api/upload", {
+          fileName: file.name,
+          fileType: file.type,
+        });
+        const { signedUrl } = response.data;
+
+        await axios.put(signedUrl, file, {
+          headers: {
+            "Content-Type": file.type,
+          },
+        });
+
+        await axios.post("/api/save", {
+          fileName: file.name,
+          fileType: file.type,
+          fileUrl: signedUrl.split("?")[0],
+          size: file.size,
+          folderId: currentFolderId,
+        });
+      }
+
+      setUploadStatus("success");
+      setSelectedFiles([]);
+    } catch (error) {
+      console.error("Upload failed", error);
+      setUploadStatus("error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleCreateFolder = async () => {
+    if (!folderName.trim()) return;
+
+    setIsCreatingFolder(true);
+    try {
+      await axios.post("/api/create-folder", {
+        folderName: folderName.trim(),
+        parentFolderId: currentFolderId,
+      });
+      setFolderName("");
+      setShowCreateFolderDialog(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to create folder", error);
+    } finally {
+      setIsCreatingFolder(false);
+    }
+  };
+
+  const handleFileSelect = (files: File[]) => {
+    setSelectedFiles(files);
+    setUploadStatus("idle");
+  };
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -40,6 +122,19 @@ const Drive = ({ folders = [], files = [] }: DriveProps) => {
   return (
     <div className="min-h-screen bg-black text-slate-200 p-4 md:p-8 pt-32">
       <div className="max-w-7xl mx-auto">
+        {currentPath.length > 0 && (
+          <div className="mb-6">
+            <Link
+              href={currentPath.length === 1 ? "/drive" : `/drive/${currentPath.slice(0, -1).join('/')}`}
+              className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </Link>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-12">
           <div>
             <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
@@ -51,12 +146,151 @@ const Drive = ({ folders = [], files = [] }: DriveProps) => {
               {files.length > 0 ? files.length : "no"} neural assets
             </p>
           </div>
-          <Link href="/upload">
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-full font-semibold text-sm transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowCreateFolderDialog(true)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Create Folder
+            </button>
+            <button
+              onClick={() => setShowUploader(!showUploader)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-full font-semibold text-sm transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]"
+            >
               + Upload Files
             </button>
-          </Link>
+          </div>
         </div>
+
+        {showUploader && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-12 max-w-2xl mx-auto"
+          >
+            <form onSubmit={handleUpload} className="space-y-6">
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  // setIsDragOver(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  // setIsDragOver(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const files = Array.from(e.dataTransfer.files);
+                  if (files.length > 0) {
+                    handleFileSelect(files);
+                  }
+                }}
+                className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
+                  selectedFiles.length > 0
+                    ? "border-green-400 bg-green-400/5"
+                    : "border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10"
+                }`}
+              >
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length > 0) {
+                      handleFileSelect(files);
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  accept="*/*"
+                />
+
+                <div className="space-y-4">
+                  {selectedFiles.length > 0 ? (
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="p-4 bg-green-400/10 rounded-full">
+                        <File className="w-12 h-12 text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-lg">
+                          {selectedFiles.length === 1
+                            ? selectedFiles[0].name
+                            : `${selectedFiles.length} files selected`}
+                        </p>
+                        {selectedFiles.length === 1 && (
+                          <p className="text-slate-500 text-sm">
+                            {(selectedFiles[0].size / 1024 / 1024).toFixed(2)}{" "}
+                            MB
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="p-6 bg-indigo-400/10 rounded-full inline-block">
+                        <Upload className="w-12 h-12 text-indigo-400" />
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-xl mb-2">
+                          Drag & drop your files here
+                        </p>
+                        <p className="text-slate-500">
+                          or click to browse files
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {selectedFiles.length > 0 && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  disabled={isUploading}
+                  className="w-full px-8 py-4 bg-white text-black rounded-full font-bold transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUploading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                      <span>Uploading...</span>
+                    </div>
+                  ) : (
+                    `Upload ${selectedFiles.length === 1 ? "File" : "Files"}`
+                  )}
+                </motion.button>
+              )}
+
+              {uploadStatus === "success" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-center space-x-2 text-green-400 bg-green-400/10 rounded-full px-6 py-3"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Upload successful!</span>
+                </motion.div>
+              )}
+
+              {uploadStatus === "error" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-center space-x-2 text-red-400 bg-red-400/10 rounded-full px-6 py-3"
+                >
+                  <X className="w-5 h-5" />
+                  <span className="font-medium">
+                    Upload failed. Please try again.
+                  </span>
+                </motion.div>
+              )}
+            </form>
+          </motion.div>
+        )}
 
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-6 text-white/80">
@@ -90,7 +324,7 @@ const Drive = ({ folders = [], files = [] }: DriveProps) => {
                   className="group relative bg-white/2 border border-white/5 hover:border-indigo-500/40 hover:bg-white/4 p-4 rounded-2xl transition-all duration-300"
                 >
                   <Link
-                    href={`/drive/${folder.id}`}
+                    href={`/drive/${[...currentPath, folder.id].join('/')}`}
                     className="flex items-center gap-4"
                   >
                     <div className="bg-indigo-500/10 p-3 rounded-xl group-hover:scale-110 transition-transform">
@@ -173,6 +407,52 @@ const Drive = ({ folders = [], files = [] }: DriveProps) => {
             </div>
           )}
         </div>
+
+        {/* Create Folder Dialog */}
+        {showCreateFolderDialog && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 max-w-md w-full"
+            >
+              <h3 className="text-xl font-bold text-white mb-4">
+                Create New Folder
+              </h3>
+              <input
+                type="text"
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                placeholder="Enter folder name"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 mb-4"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleCreateFolder();
+                  }
+                }}
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowCreateFolderDialog(false);
+                    setFolderName("");
+                  }}
+                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateFolder}
+                  disabled={isCreatingFolder || !folderName.trim()}
+                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-lg transition-all"
+                >
+                  {isCreatingFolder ? "Creating..." : "Create"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );

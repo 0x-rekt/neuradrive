@@ -20,7 +20,7 @@ export const POST = async (req: NextRequest) => {
     await prisma.folder.create({
       data: {
         name: folderName,
-        parentId: parentFolderId || "",
+        parentId: parentFolderId || null,
         userId: session.user.id,
       },
     });
@@ -30,6 +30,7 @@ export const POST = async (req: NextRequest) => {
       { status: 201 },
     );
   } catch (error) {
+    console.error("Error creating folder:", error);
     return NextResponse.json(
       { error: "Failed to create folder" },
       { status: 500 },
