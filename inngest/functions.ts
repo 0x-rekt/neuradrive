@@ -3,6 +3,7 @@ import { inngest } from "./client";
 import { chunkText } from "@/utils/chunk";
 import { storeEmbeddings } from "@/utils/embeddings";
 import { extractTextFromFile } from "@/utils/extract";
+import prisma from "@/lib/prisma";
 
 export const helloWorld = inngest.createFunction(
   { id: "Hello World" },
@@ -19,6 +20,11 @@ export const processFile = inngest.createFunction(
   async ({ event, step }) => {
     const { bucket, key, fileId, userId } = event.data;
 
+    await prisma.file.update({
+      where: { id: fileId },
+      data: { status: "PROCESSING" },
+    });
+
     const fileBufferBase64 = await step.run("download-file", async () => {
       const buffer = await getFileFromS3(bucket, key);
       return buffer.toString("base64");
@@ -30,6 +36,10 @@ export const processFile = inngest.createFunction(
     });
 
     if (!text || text.length === 0) {
+      await prisma.file.update({
+        where: { id: fileId },
+        data: { status: "FAILED" },
+      });
       return { status: "error", message: "No text extracted from file" };
     }
 
@@ -43,6 +53,11 @@ export const processFile = inngest.createFunction(
         userId,
         key,
       });
+    });
+
+    await prisma.file.update({
+      where: { id: fileId },
+      data: { status: "READY" },
     });
 
     return { status: "success", message: "File processed successfully" };
