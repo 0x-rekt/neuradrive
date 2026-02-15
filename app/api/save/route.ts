@@ -1,3 +1,4 @@
+import { inngest } from "@/inngest/client";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
@@ -32,6 +33,17 @@ export const POST = async (req: NextRequest) => {
         status: "UPLOADED",
       },
     });
+
+    await inngest.send({
+      name: "file/uploaded",
+      data: {
+        bucket: process.env.AWS_S3_BUCKET_NAME,
+        key: s3Key,
+        fileId: file.id,
+        userId: session.user.id,
+      },
+    });
+
     return NextResponse.json({ file }, { status: 201 });
   } catch (error) {
     console.error("Error saving file metadata:", error);
