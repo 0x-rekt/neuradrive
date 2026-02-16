@@ -5,7 +5,7 @@ const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
 });
 
-const index = pinecone.Index(process.env.PINECONE_INDEX!);
+const index = pinecone.index(process.env.PINECONE_INDEX!);
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -20,6 +20,9 @@ export const storeEmbeddings = async (
       const res = await ai.models.embedContent({
         model: "gemini-embedding-001",
         contents: chunk,
+        config: {
+          outputDimensionality: 768,
+        },
       });
 
       return {
