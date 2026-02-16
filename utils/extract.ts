@@ -1,4 +1,3 @@
-import { PDFParse } from "pdf-parse";
 import { fileTypeFromBuffer } from "file-type";
 
 export const extractTextFromFile = async (
@@ -12,13 +11,12 @@ export const extractTextFromFile = async (
     console.log("Detected file type:", ext);
 
     if (ext === "pdf") {
-      const data = new PDFParse(fileBuffer);
-      const result = await data.getText();
-
-      await data.destroy();
-
-      return result.text;
+      const pdfParse = require("pdf-parse");
+      const data = await pdfParse(fileBuffer);
+      return data.text;
     }
+
+    return "";
   } catch (error) {
     console.log("Error extracting text from file:", error);
     throw error;
