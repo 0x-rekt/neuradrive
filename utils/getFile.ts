@@ -5,7 +5,7 @@ export const getFileFromS3 = async (bucket: string, key: string) => {
   const res = await s3.send(
     new GetObjectCommand({
       Bucket: bucket,
-      Key: `uploads/${key}`,
+      Key: key,
     }),
   );
 
