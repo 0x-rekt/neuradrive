@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 const Navbar = () => {
   const { data } = useSession();
@@ -47,12 +48,15 @@ const Navbar = () => {
                 <Cloud className="text-white w-5 h-5" />
               </div>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">
+            <Link
+              href="/"
+              className="text-xl font-bold text-white tracking-tight"
+            >
               Neura
               <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-purple-400">
                 Drive
               </span>
-            </span>
+            </Link>
           </motion.div>
 
           {data?.user && (

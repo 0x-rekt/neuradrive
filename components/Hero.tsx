@@ -5,7 +5,7 @@ import { Zap } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section className="relative pt-40 pb-24 overflow-hidden bg-black">
+    <section className="relative pt-28 pb-24 overflow-hidden bg-black">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
         <motion.div
           animate={{

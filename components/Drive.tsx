@@ -176,19 +176,19 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
             </p>
           </div>
           <div className="flex gap-4">
-            <button
+            <Button
               onClick={() => setShowCreateFolderDialog(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Create Folder
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setShowUploader(!showUploader)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-full font-semibold text-sm transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-full font-semibold text-sm transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] cursor-pointer"
             >
               + Upload Files
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -397,52 +397,62 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
               </p>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {files.map((file, index) => (
                 <motion.div
-                  id={`file-${file.id}`}
                   key={file.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.01 }}
-                  className="group relative bg-white/1 border border-white/5 hover:bg-slate-900/50 hover:border-violet-500/30 p-5 rounded-3xl transition-all"
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ y: -4 }}
+                  className="group relative"
                 >
-                  <Button
-                    variant="ghost"
-                    className="w-full h-full p-0"
+                  <div className="absolute -inset-px bg-linear-to-br from-violet-500/20 via-transparent to-indigo-500/10 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  <div
                     onClick={() => handleFileOpen(file.id)}
+                    className="relative bg-[#0a0a0a] border border-white/5 group-hover:border-violet-500/40 p-6 rounded-[2rem] transition-all duration-300 cursor-pointer h-full flex flex-col justify-between overflow-hidden"
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="p-3 bg-white/3 rounded-2xl border border-white/5 group-hover:border-violet-500/20">
+                    <div className="flex justify-between items-start mb-8">
+                      <div className="p-4 bg-white/3 rounded-2xl border border-white/5 group-hover:scale-110 group-hover:bg-violet-500/10 group-hover:border-violet-500/20 transition-all duration-500">
                         {getFileIcon(file.type)}
                       </div>
-                      <MoreVertical className="w-4 h-4 text-slate-600" />
+                      <button className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                        <MoreVertical className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                      </button>
                     </div>
-
-                    <div className="space-y-1">
-                      <p className="text-white font-medium text-sm truncate">
+                    <div className="space-y-3">
+                      <h3 className="text-white font-medium text-base truncate group-hover:text-violet-300 transition-colors">
                         {file.name}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-slate-500 font-mono">
-                          {formatSize(file.size)}
-                        </span>
-                        <span className="text-[11px] text-slate-600 uppercase tracking-tighter">
-                          {file.type.split("/")[1] || "file"}
-                        </span>
+                      </h3>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-white/3">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                            Size
+                          </span>
+                          <span className="text-xs text-slate-300 font-mono">
+                            {formatSize(file.size)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                            Type
+                          </span>
+                          <span className="text-xs text-indigo-400 font-medium">
+                            {file.type.split("/")[1]?.toUpperCase() || "FILE"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </Button>
-
-                  <div className="absolute inset-0 -z-10 bg-linear-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
+                    <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-violet-500/20 to-transparent opacity-0 group-hover:opacity-100" />
+                  </div>
                 </motion.div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Create Folder Dialog */}
         {showCreateFolderDialog && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div
