@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { Button } from "./ui/button";
 
 interface DriveProps {
   folders: any[];
@@ -117,6 +118,16 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
     if (type.startsWith("audio/")) return <Music className={iconClass} />;
     if (type === "application/pdf") return <FileText className={iconClass} />;
     return <File className={iconClass} />;
+  };
+
+  const handleFileOpen = async (fileId: string) => {
+    try {
+      const response = await axios.get(`/api/file/${fileId}`);
+      const { url } = response.data;
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Failed to open file", error);
+    }
   };
 
   return (
@@ -393,7 +404,11 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                   whileHover={{ scale: 1.01 }}
                   className="group relative bg-white/1 border border-white/5 hover:bg-slate-900/50 hover:border-violet-500/30 p-5 rounded-3xl transition-all"
                 >
-                  <a href={file.url} target="_blank" rel="noopener noreferrer">
+                  <Button
+                    variant="ghost"
+                    className="w-full h-full p-0"
+                    onClick={() => handleFileOpen(file.id)}
+                  >
                     <div className="flex justify-between items-start mb-4">
                       <div className="p-3 bg-white/3 rounded-2xl border border-white/5 group-hover:border-violet-500/20">
                         {getFileIcon(file.type)}
@@ -414,7 +429,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                         </span>
                       </div>
                     </div>
-                  </a>
+                  </Button>
 
                   <div className="absolute inset-0 -z-10 bg-linear-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
                 </motion.div>
