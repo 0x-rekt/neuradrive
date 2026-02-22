@@ -55,99 +55,105 @@ const Navbar = () => {
             </span>
           </motion.div>
 
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full group">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-              </div>
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setQuery(v);
-                  setShowResults(!!v.trim());
-
-                  if (debounceRef.current)
-                    window.clearTimeout(debounceRef.current);
-                  debounceRef.current = window.setTimeout(async () => {
-                    const q = v.trim();
-                    if (!q) {
-                      setResults([]);
-                      setLoadingResults(false);
-                      return;
-                    }
-
-                    setLoadingResults(true);
-                    try {
-                      const res = await fetch(
-                        `/api/search?q=${encodeURIComponent(q)}`,
-                      );
-                      if (!res.ok) {
-                        setResults([]);
-                      } else {
-                        const data = await res.json();
-                        setResults(data.results || []);
-                      }
-                    } catch (err) {
-                      console.error("Search request failed", err);
-                      setResults([]);
-                    } finally {
-                      setLoadingResults(false);
-                    }
-                  }, 350);
-                }}
-                className="block w-full pl-10 pr-12 py-2 bg-white/3 border border-white/8 rounded-2xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:bg-white/6 transition-all duration-500"
-                placeholder="Ask AI or search files..."
-                onFocus={() => setShowResults(!!query.trim())}
-                onBlur={() => setTimeout(() => setShowResults(false), 150)}
-              />
-              {showResults && (
-                <div className="absolute left-0 right-0 mt-2 bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-lg overflow-hidden z-50">
-                  <div className="max-h-72 overflow-auto">
-                    {loadingResults ? (
-                      <div className="p-3 text-sm text-slate-400">
-                        Searching...
-                      </div>
-                    ) : results.length === 0 ? (
-                      <div className="p-3 text-sm text-slate-500">
-                        No results
-                      </div>
-                    ) : (
-                      results.map((r, i) => (
-                        <a
-                          key={`${r.fileId}-${i}`}
-                          href={`/drive#file-${r.fileId}`}
-                          className="block px-3 py-2 hover:bg-white/3 border-b border-white/5 text-sm text-slate-200"
-                          onMouseDown={(e) => e.preventDefault()}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-white truncate">
-                                {r.file?.name || "Unknown file"}
-                              </div>
-                              <div className="text-slate-400 text-xs truncate mt-0.5">
-                                {r.text}
-                              </div>
-                            </div>
-                            <div className="ml-3 text-[11px] text-slate-500">
-                              {r.score?.toFixed?.(2) ?? ""}
-                            </div>
-                          </div>
-                        </a>
-                      ))
-                    )}
-                  </div>
+          {data?.user && (
+            <div className="hidden md:flex flex-1 max-w-md mx-8">
+              <div className="relative w-full group">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
                 </div>
-              )}
-              <div className="absolute inset-y-0 right-3 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500/50" />
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/5 border border-white/10 rounded-md">
-                  ⌘K
-                </kbd>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setQuery(v);
+                    setShowResults(!!v.trim());
+
+                    if (debounceRef.current)
+                      window.clearTimeout(debounceRef.current);
+                    debounceRef.current = window.setTimeout(async () => {
+                      const q = v.trim();
+                      if (!q) {
+                        setResults([]);
+                        setLoadingResults(false);
+                        return;
+                      }
+
+                      setLoadingResults(true);
+                      try {
+                        const res = await fetch(
+                          `/api/search?q=${encodeURIComponent(q)}`,
+                        );
+                        if (!res.ok) {
+                          setResults([]);
+                        } else {
+                          const data = await res.json();
+                          setResults(data.results || []);
+                        }
+                      } catch (err) {
+                        console.error("Search request failed", err);
+                        setResults([]);
+                      } finally {
+                        setLoadingResults(false);
+                      }
+                    }, 350);
+                  }}
+                  className="block w-full pl-10 pr-12 py-2 bg-white/3 border border-white/8 rounded-2xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:bg-white/6 transition-all duration-500"
+                  placeholder="Ask AI or search files..."
+                  onFocus={() => setShowResults(!!query.trim())}
+                  onBlur={() => setTimeout(() => setShowResults(false), 150)}
+                />
+                {showResults && (
+                  <div className="absolute left-0 right-0 mt-2 bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-lg overflow-hidden z-50">
+                    <div className="max-h-72 overflow-auto">
+                      {loadingResults ? (
+                        <div className="p-3 text-sm text-slate-400">
+                          Searching...
+                        </div>
+                      ) : results.length === 0 ? (
+                        <div className="p-3 text-sm text-slate-500">
+                          No results
+                        </div>
+                      ) : (
+                        results.map((r, i) => (
+                          <a
+                            key={`${r.fileId}-${i}`}
+                            href={
+                              r.file?.folderId
+                                ? `/drive/${r.file.folderId}#file-${r.fileId}`
+                                : `/drive#file-${r.fileId}`
+                            }
+                            className="block px-3 py-2 hover:bg-white/3 border-b border-white/5 text-sm text-slate-200"
+                            onMouseDown={(e) => e.preventDefault()}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-white truncate">
+                                  {r.file?.name || "Unknown file"}
+                                </div>
+                                <div className="text-slate-400 text-xs truncate mt-0.5">
+                                  {r.text}
+                                </div>
+                              </div>
+                              <div className="ml-3 text-[11px] text-slate-500">
+                                {r.score?.toFixed?.(2) ?? ""}
+                              </div>
+                            </div>
+                          </a>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div className="absolute inset-y-0 right-3 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-500/50" />
+                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/5 border border-white/10 rounded-md">
+                    ⌘K
+                  </kbd>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="flex items-center gap-4">
             {data?.user ? (

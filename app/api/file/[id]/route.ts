@@ -23,7 +23,7 @@ export const GET = async (
     const file = await prisma.file.findFirst({
       where: {
         id,
-        userId: session.user.id,
+        ownerId: session.user.id,
       },
     });
 

@@ -20,6 +20,7 @@ import {
 import { motion } from "framer-motion";
 import axios from "axios";
 import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
 
 interface DriveProps {
   folders: any[];
@@ -39,6 +40,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
   const [folderName, setFolderName] = useState("");
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
+  const router = useRouter();
 
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,6 +75,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
 
       setUploadStatus("success");
       setSelectedFiles([]);
+      router.refresh();
     } catch (error) {
       console.error("Upload failed", error);
       setUploadStatus("error");
@@ -92,6 +95,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
       });
       setFolderName("");
       setShowCreateFolderDialog(false);
+      router.refresh();
     } catch (error) {
       console.error("Failed to create folder", error);
     } finally {

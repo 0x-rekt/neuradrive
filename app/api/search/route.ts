@@ -69,7 +69,7 @@ export const GET = async (req: NextRequest) => {
         ownerId: session.user.id,
         status: "READY",
       },
-      select: { id: true, name: true, type: true, s3Key: true },
+      select: { id: true, name: true, type: true, s3Key: true, folderId: true },
     });
 
     const fileMap = Object.fromEntries(files.map((f) => [f.id, f]));
