@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Cloud,
   Search,
@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import SignInBtn from "./SignInBtn";
 import {
@@ -26,6 +27,11 @@ import {
 
 const Navbar = () => {
   const { data } = useSession();
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [loadingResults, setLoadingResults] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const debounceRef = useRef<number | null>(null);
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-md border-b border-white/8 saturate-150">
@@ -56,9 +62,84 @@ const Navbar = () => {
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-12 py-2 bg-white/3 border border-white/8 rounded-2xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:bg-white/6transition-all duration-500"
+                value={query}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setQuery(v);
+                  setShowResults(!!v.trim());
+
+                  if (debounceRef.current)
+                    window.clearTimeout(debounceRef.current);
+                  debounceRef.current = window.setTimeout(async () => {
+                    const q = v.trim();
+                    if (!q) {
+                      setResults([]);
+                      setLoadingResults(false);
+                      return;
+                    }
+
+                    setLoadingResults(true);
+                    try {
+                      const res = await fetch(
+                        `/api/search?q=${encodeURIComponent(q)}`,
+                      );
+                      if (!res.ok) {
+                        setResults([]);
+                      } else {
+                        const data = await res.json();
+                        setResults(data.results || []);
+                      }
+                    } catch (err) {
+                      console.error("Search request failed", err);
+                      setResults([]);
+                    } finally {
+                      setLoadingResults(false);
+                    }
+                  }, 350);
+                }}
+                className="block w-full pl-10 pr-12 py-2 bg-white/3 border border-white/8 rounded-2xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:bg-white/6 transition-all duration-500"
                 placeholder="Ask AI or search files..."
+                onFocus={() => setShowResults(!!query.trim())}
+                onBlur={() => setTimeout(() => setShowResults(false), 150)}
               />
+              {showResults && (
+                <div className="absolute left-0 right-0 mt-2 bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-lg overflow-hidden z-50">
+                  <div className="max-h-72 overflow-auto">
+                    {loadingResults ? (
+                      <div className="p-3 text-sm text-slate-400">
+                        Searching...
+                      </div>
+                    ) : results.length === 0 ? (
+                      <div className="p-3 text-sm text-slate-500">
+                        No results
+                      </div>
+                    ) : (
+                      results.map((r, i) => (
+                        <a
+                          key={`${r.fileId}-${i}`}
+                          href={`/drive#file-${r.fileId}`}
+                          className="block px-3 py-2 hover:bg-white/3 border-b border-white/5 text-sm text-slate-200"
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-white truncate">
+                                {r.file?.name || "Unknown file"}
+                              </div>
+                              <div className="text-slate-400 text-xs truncate mt-0.5">
+                                {r.text}
+                              </div>
+                            </div>
+                            <div className="ml-3 text-[11px] text-slate-500">
+                              {r.score?.toFixed?.(2) ?? ""}
+                            </div>
+                          </div>
+                        </a>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="absolute inset-y-0 right-3 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-500/50" />
                 <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/5 border border-white/10 rounded-md">

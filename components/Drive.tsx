@@ -385,6 +385,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {files.map((file, index) => (
                 <motion.div
+                  id={`file-${file.id}`}
                   key={file.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
