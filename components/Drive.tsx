@@ -124,6 +124,48 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
     return <File className={iconClass} />;
   };
 
+  const getStatusBadge = (status: string) => {
+    const s = (status || "").toUpperCase();
+    const base =
+      "inline-flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded-full";
+
+    if (s === "PROCESSING") {
+      return (
+        <div className={base + " bg-violet-700/10 text-violet-300"}>
+          <div className="w-4 h-4 border-2 border-violet-300 border-t-transparent rounded-full animate-spin" />
+          <span>Processing</span>
+        </div>
+      );
+    }
+
+    if (s === "READY") {
+      return (
+        <div className={base + " bg-green-700/10 text-green-300"}>
+          <CheckCircle className="w-4 h-4 text-green-300" />
+          <span>Ready</span>
+        </div>
+      );
+    }
+
+    if (s === "FAILED") {
+      return (
+        <div className={base + " bg-red-700/10 text-red-300"}>
+          <X className="w-4 h-4 text-red-300" />
+          <span>Failed</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className={base + " bg-indigo-700/10 text-indigo-300"}>
+        <Upload className="w-4 h-4 text-indigo-300" />
+        <span>
+          {s === "" ? "Unknown" : s.charAt(0) + s.slice(1).toLowerCase()}
+        </span>
+      </div>
+    );
+  };
+
   const handleFileOpen = async (fileId: string) => {
     try {
       const response = await axios.get(`/api/file/${fileId}`);
@@ -426,6 +468,10 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                         {file.name}
                       </h3>
 
+                      <div className="flex items-center gap-3">
+                        {getStatusBadge(file.status)}
+                      </div>
+
                       <div className="flex items-center justify-between pt-2 border-t border-white/3">
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
@@ -443,6 +489,17 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                             {file.type.split("/")[1]?.toUpperCase() || "FILE"}
                           </span>
                         </div>
+                      </div>
+                      <div className="mt-4 flex justify-end">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/chat/${file.id}`);
+                          }}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm"
+                        >
+                          Chat
+                        </Button>
                       </div>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-violet-500/20 to-transparent opacity-0 group-hover:opacity-100" />

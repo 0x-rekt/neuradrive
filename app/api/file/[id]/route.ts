@@ -17,7 +17,7 @@ export const GET = async (
   if (!session?.user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const file = await prisma.file.findFirst({
