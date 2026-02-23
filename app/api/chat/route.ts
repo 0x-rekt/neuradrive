@@ -21,7 +21,6 @@ export const POST = async (req: NextRequest) => {
   });
   if (!file) return new Response("File not found", { status: 404 });
 
-  // Normalize messages: convert { parts, role } → { content, role }
   const normalizedMessages = messages.map((m: any) => ({
     role: m.role,
     content: Array.isArray(m.parts)
@@ -29,13 +28,11 @@ export const POST = async (req: NextRequest) => {
       : (m.content ?? ""),
   }));
 
-  // Extract text from the last user message for embedding
   const lastMessage = normalizedMessages[normalizedMessages.length - 1];
   const messageText = lastMessage.content;
 
   if (!messageText) return new Response("Empty message", { status: 400 });
 
-  // Embed and query Pinecone
   const embeddingRes = await ai.models.embedContent({
     model: "gemini-embedding-001",
     contents: messageText,
@@ -56,9 +53,8 @@ export const POST = async (req: NextRequest) => {
     .filter(Boolean)
     .join("\n\n");
 
-  // Stream response with normalized messages
   const result = streamText({
-    model: google("gemini-2.0-flash"),
+    model: google("gemini-2.5-flash"),
     system: `You are a helpful assistant. Answer questions based on the following document content:
 
 ${context}
