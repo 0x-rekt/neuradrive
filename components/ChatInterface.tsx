@@ -5,6 +5,8 @@ import { useChat } from "@ai-sdk/react";
 import { Send, FileText, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const ChatInterface = ({ file }: { file: any }) => {
   const { messages, sendMessage } = useChat();
@@ -47,7 +49,7 @@ const ChatInterface = ({ file }: { file: any }) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 max-w-3xl mx-auto w-full">
+      <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 space-y-4 max-w-3xl mx-auto w-full">
         {messages.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -83,7 +85,16 @@ const ChatInterface = ({ file }: { file: any }) => {
               {m.parts.map((part, i) => {
                 switch (part.type) {
                   case "text":
-                    return <span key={i}>{part.text}</span>;
+                    return (
+                      <div
+                        key={i}
+                        className="prose prose-invert max-w-none text-sm"
+                      >
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {part.text}
+                        </ReactMarkdown>
+                      </div>
+                    );
                 }
               })}
             </div>
@@ -112,7 +123,7 @@ const ChatInterface = ({ file }: { file: any }) => {
         )}
       </div>
 
-      <div className="border-t border-white/10 px-6 py-4">
+      <div className="border-t border-white/10 px-6 py-4 sticky bottom-0 bg-black">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-3">
           <input
             value={input}
