@@ -124,6 +124,26 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
     return <File className={iconClass} />;
   };
 
+  const getFileTypeLabel = (type: string) => {
+    if (!type) return "FILE";
+    if (type === "application/pdf") return "PDF";
+    if (type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return "DOCX";
+    if (type === "application/msword") return "DOC";
+    if (type === "application/vnd.openxmlformats-officedocument.presentationml.presentation") return "PPTX";
+    if (type === "application/vnd.ms-excel") return "XLS";
+    if (type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") return "XLSX";
+    if (type === "text/plain") return "TXT";
+    if (type === "text/csv") return "CSV";
+    if (type === "application/json") return "JSON";
+
+    // Fallback logic for basic images/video (e.g "image/png" -> "PNG")
+    const parts = type.split("/");
+    if (parts.length > 1) {
+       return parts[1].toUpperCase();
+    }
+    return "FILE";
+  };
+
   const getStatusBadge = (status: string) => {
     const s = (status || "").toUpperCase();
     const base =
@@ -218,6 +238,12 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
             </p>
           </div>
           <div className="flex gap-4">
+            <Button
+              onClick={() => router.push(`/chat/folder/${currentFolderId || 'root'}`)}
+              className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.3)]"
+            >
+              Chat {currentFolderId ? "with Folder" : "with Root"}
+            </Button>
             <Button
               onClick={() => setShowCreateFolderDialog(true)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 cursor-pointer"
@@ -410,8 +436,20 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                         {new Date(folder.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <MoreVertical className="w-4 h-4 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Link>
+
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.push(`/chat/folder/${folder.id}`);
+                      }}
+                      className="bg-indigo-600/80 hover:bg-indigo-700 text-white px-3 py-1.5 h-auto rounded-md text-xs font-semibold backdrop-blur-sm"
+                    >
+                      Chat
+                    </Button>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -485,8 +523,8 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                           <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
                             Type
                           </span>
-                          <span className="text-xs text-indigo-400 font-medium">
-                            {file.type.split("/")[1]?.toUpperCase() || "FILE"}
+                          <span className="text-xs text-indigo-400 font-medium truncate max-w-[80px]" title={file.type}>
+                            {getFileTypeLabel(file.type)}
                           </span>
                         </div>
                       </div>

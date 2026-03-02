@@ -7,9 +7,21 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Folder } from "lucide-react";
 
-const ChatInterface = ({ file }: { file: any }) => {
-  const { messages, sendMessage } = useChat();
+type ChatInterfaceProps = {
+  file?: any;
+  folder?: any;
+};
+
+const ChatInterface = ({ file, folder }: ChatInterfaceProps) => {
+  const isFolder = !!folder;
+  const targetId = isFolder ? folder.id : file?.id;
+  const targetName = isFolder ? folder.name : file?.name;
+
+  const { messages, sendMessage } = useChat({
+    api: isFolder ? "/api/chat/folder" : "/api/chat",
+  } as any);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,7 +34,8 @@ const ChatInterface = ({ file }: { file: any }) => {
     if (!input.trim()) return;
     try {
       setIsLoading(true);
-      await sendMessage({ text: input }, { body: { fileId: file.id } });
+      const requestBody = isFolder ? { folderId: targetId } : { fileId: targetId };
+      await sendMessage({ text: input }, { body: requestBody });
       setInput("");
     } catch (err) {
       console.error(err);
@@ -41,11 +54,17 @@ const ChatInterface = ({ file }: { file: any }) => {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="p-2 bg-indigo-500/10 rounded-lg">
-          <FileText className="w-5 h-5 text-indigo-400" />
+          {isFolder ? (
+            <Folder className="w-5 h-5 text-indigo-400" />
+          ) : (
+            <FileText className="w-5 h-5 text-indigo-400" />
+          )}
         </div>
         <div>
-          <p className="text-white font-semibold text-sm">{file.name}</p>
-          <p className="text-slate-500 text-xs">AI Document Chat</p>
+          <p className="text-white font-semibold text-sm">{targetName}</p>
+          <p className="text-slate-500 text-xs">
+            {isFolder ? "AI Folder Chat" : "AI Document Chat"}
+          </p>
         </div>
       </div>
 
@@ -57,10 +76,14 @@ const ChatInterface = ({ file }: { file: any }) => {
             className="text-center py-20"
           >
             <div className="p-4 bg-indigo-500/10 rounded-full inline-block mb-4">
-              <FileText className="w-8 h-8 text-indigo-400" />
+              {isFolder ? (
+                <Folder className="w-8 h-8 text-indigo-400" />
+              ) : (
+                <FileText className="w-8 h-8 text-indigo-400" />
+              )}
             </div>
             <p className="text-white font-semibold mb-2">
-              Ask anything about this document
+              {isFolder ? "Ask anything about documents in this folder" : "Ask anything about this document"}
             </p>
             <p className="text-slate-500 text-sm">
               Summarize it, extract key points, or ask specific questions.
@@ -128,7 +151,7 @@ const ChatInterface = ({ file }: { file: any }) => {
           <input
             value={input}
             onChange={handleInputChange}
-            placeholder="Ask a question about this document..."
+            placeholder={isFolder ? "Ask a question across the folder..." : "Ask a question about this document..."}
             className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
           />
           <button
