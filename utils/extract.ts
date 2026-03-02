@@ -1,6 +1,20 @@
 import { fileTypeFromBuffer } from "file-type";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { DocxLoader } from "@langchain/community/document_loaders/fs/docx";
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+
+const IMAGE_MIME_TYPES: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  bmp: "image/bmp",
+  tiff: "image/tiff",
+  tif: "image/tiff",
+};
 
 export const extractTextFromFile = async (
   fileBuffer: Buffer,
@@ -13,6 +27,42 @@ export const extractTextFromFile = async (
     console.log("Detected file type:", ext);
 
     switch (ext) {
+
+      case "jpg":
+case "jpeg":
+case "png":
+case "gif":
+case "webp":
+case "bmp":
+case "tiff":
+case "tif": {
+  const mimeType = IMAGE_MIME_TYPES[ext] ?? "image/jpeg";
+  const base64Data = fileBuffer.toString("base64");
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          {
+            inlineData: { mimeType, data: base64Data },
+          },
+          {
+            text: "Please extract and describe all text, content, and visual information from this image in detail. Include any visible text verbatim, describe charts, tables, diagrams, and other visual elements thoroughly so the content can be searched and queried.",
+          },
+        ],
+      },
+    ],
+  });
+
+  return (
+    response.candidates?.[0]?.content?.parts
+      ?.map((p) => p.text ?? "")
+      .join("\n") ?? ""
+  );
+}
+
       case "pdf": {
         const blob = new Blob([new Uint8Array(fileBuffer)], {
           type: "application/pdf",
