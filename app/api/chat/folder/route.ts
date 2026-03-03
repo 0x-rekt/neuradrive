@@ -18,10 +18,18 @@ export const POST = async (req: NextRequest) => {
 
   if (!folderId) return new Response("Folder ID required", { status: 400 });
 
+  if (folderId !== "root") {
+    const folder = await prisma.folder.findFirst({
+      where: { id: folderId, userId: session.user.id },
+    });
+    if (!folder) return new Response("Folder not found", { status: 404 });
+  }
+
   const files = await prisma.file.findMany({
     where: {
       folderId: folderId === "root" ? null : folderId,
       ownerId: session.user.id,
+      status: "READY",
     },
     select: {
       id: true,
@@ -66,8 +74,10 @@ export const POST = async (req: NextRequest) => {
     },
   });
 
+  const fileIdSet = new Set(fileIds);
   let context = searchRes.matches
-    ?.map((m) => {
+    ?.filter((m) => m.metadata?.fileId && fileIdSet.has(m.metadata.fileId as string))
+    .map((m) => {
       const fName = files.find((f) => f.id === m.metadata?.fileId)?.name || "Unknown Document";
       return `--- Source: ${fName} ---\n${m.metadata?.text}`;
     })
@@ -85,7 +95,7 @@ Below are relevant excerpts from their documents, identified by their "Source" f
 
 ${context}
 
-When referencing information, try to mention which file it came from. If the answer isn't in the provided document contexts, say so clearly. Do not use external knowledge unless summarizing the provided text.`,
+When referencing information, mention which file it came from. Only use the information provided above. If the answer is not in the provided document excerpts, say so clearly. Do not use any external knowledge or information beyond what is provided above.`,
     messages: normalizedMessages,
   });
 
