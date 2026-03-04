@@ -27,6 +27,11 @@ const Page = async () => {
         { shares: { some: { recipientId: session.user.id } } },
       ],
     },
+    include: {
+      shares: {
+        where: { sharedWithEmail: session.user.email! },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -38,10 +43,22 @@ const Page = async () => {
         { shares: { some: { recipientId: session.user.id } } },
       ],
     },
+    include: {
+      shares: {
+        where: { sharedWithEmail: session.user.email! },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
-  return <Drive folders={folders} files={files} currentPath={[]} />;
+  return (
+    <Drive
+      folders={folders}
+      files={files}
+      currentPath={[]}
+      currentUserId={session.user.id}
+    />
+  );
 };
 
 export default Page;

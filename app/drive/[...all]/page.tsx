@@ -22,6 +22,11 @@ const page = async ({ params }: { params: Promise<{ all: string[] }> }) => {
         { shares: { some: { recipientId: session?.user?.id } } },
       ],
     },
+    include: {
+      shares: {
+        where: { sharedWithEmail: session?.user?.email! },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -33,12 +38,22 @@ const page = async ({ params }: { params: Promise<{ all: string[] }> }) => {
         { shares: { some: { recipientId: session?.user?.id } } },
       ],
     },
+    include: {
+      shares: {
+        where: { sharedWithEmail: session?.user?.email! },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
   return (
     <div>
-      <Drive folders={folders} files={files} currentPath={all} />
+      <Drive
+        folders={folders}
+        files={files}
+        currentPath={all}
+        currentUserId={session?.user?.id!}
+      />
     </div>
   );
 };

@@ -40,3 +40,14 @@ export const storeEmbeddings = async (
 
   await index.upsert({ records: vectors });
 };
+
+export const deleteEmbeddings = async (fileId: string) => {
+  try {
+    // Delete all vectors with this fileId from Pinecone
+    await index.deleteMany({ filter: { fileId: { $eq: fileId } } });
+    console.log(`Deleted embeddings for file: ${fileId}`);
+  } catch (error) {
+    console.error(`Failed to delete embeddings for file ${fileId}:`, error);
+    throw error;
+  }
+};

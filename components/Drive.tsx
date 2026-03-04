@@ -18,6 +18,7 @@ import {
   Plus,
   Share,
   Users,
+  Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "axios";
@@ -28,9 +29,15 @@ interface DriveProps {
   folders: any[];
   files: any[];
   currentPath: string[];
+  currentUserId: string;
 }
 
-const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
+const Drive = ({
+  folders = [],
+  files = [],
+  currentPath,
+  currentUserId,
+}: DriveProps) => {
   const currentFolderId =
     currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
   const [showUploader, setShowUploader] = useState(false);
@@ -51,6 +58,13 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
   const [shareEmail, setShareEmail] = useState("");
   const [shareRole, setShareRole] = useState<"VIEWER" | "EDITOR">("VIEWER");
   const [isSharing, setIsSharing] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<{
+    id: string;
+    name: string;
+    type: "file" | "folder";
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -145,9 +159,54 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
     setShowShareDialog(true);
   };
 
+  const openDeleteDialog = (item: {
+    id: string;
+    name: string;
+    type: "file" | "folder";
+  }) => {
+    setDeleteItem(item);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteItem) return;
+
+    setIsDeleting(true);
+    try {
+      await axios.delete("/api/delete", {
+        data: {
+          type: deleteItem.type,
+          id: deleteItem.id,
+        },
+      });
+      setShowDeleteDialog(false);
+      setDeleteItem(null);
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to delete", error);
+      // Could show an error message here
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleFileSelect = (files: File[]) => {
     setSelectedFiles(files);
     setUploadStatus("idle");
+  };
+
+  const canDelete = (item: any, type: "file" | "folder"): boolean => {
+    // Check if user is the owner
+    const isOwner =
+      type === "file"
+        ? item.ownerId === currentUserId
+        : item.userId === currentUserId;
+
+    // Check if user has EDITOR access through shares
+    const hasEditorAccess =
+      item.shares && item.shares.some((share: any) => share.role === "EDITOR");
+
+    return isOwner || hasEditorAccess;
   };
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
@@ -484,19 +543,36 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                       </p>
                     </div>
                   </Link>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      openShareDialog({
-                        id: folder.id,
-                        name: folder.name,
-                        type: "folder",
-                      });
-                    }}
-                    className="absolute top-2 right-2 p-2 hover:bg-white/5 rounded-full transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <Share className="w-4 h-4 text-slate-400 hover:text-white" />
-                  </button>
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openShareDialog({
+                          id: folder.id,
+                          name: folder.name,
+                          type: "folder",
+                        });
+                      }}
+                      className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                    >
+                      <Share className="w-4 h-4 text-slate-400 hover:text-white" />
+                    </button>
+                    {canDelete(folder, "folder") && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openDeleteDialog({
+                            id: folder.id,
+                            name: folder.name,
+                            type: "folder",
+                          });
+                        }}
+                        className="p-2 hover:bg-red-500/10 rounded-full transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-400" />
+                      </button>
+                    )}
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -558,9 +634,21 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                         >
                           <Share className="w-5 h-5 text-slate-500 group-hover:text-white" />
                         </button>
-                        <button className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                          <MoreVertical className="w-5 h-5 text-slate-500 group-hover:text-white" />
-                        </button>
+                        {canDelete(file, "file") && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDeleteDialog({
+                                id: file.id,
+                                name: file.name,
+                                type: "file",
+                              });
+                            }}
+                            className="p-2 hover:bg-red-500/10 rounded-full transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5 text-slate-500 hover:text-red-400" />
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -714,6 +802,56 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                   className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-lg transition-all"
                 >
                   {isSharing ? "Sharing..." : "Share"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {showDeleteDialog && deleteItem && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white/10 backdrop-blur-md border border-red-500/20 rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-500/10 rounded-full">
+                  <Trash2 className="w-6 h-6 text-red-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">
+                  Delete {deleteItem.type === "file" ? "File" : "Folder"}?
+                </h3>
+              </div>
+              <p className="text-slate-300 text-sm mb-2">
+                Are you sure you want to delete "{deleteItem.name}"?
+              </p>
+              {deleteItem.type === "folder" && (
+                <p className="text-red-400 text-sm mb-4">
+                  Warning: This will also delete all files and subfolders inside
+                  it.
+                </p>
+              )}
+              <p className="text-slate-400 text-xs mb-6">
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteDialog(false);
+                    setDeleteItem(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 text-white rounded-lg transition-all"
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </motion.div>
