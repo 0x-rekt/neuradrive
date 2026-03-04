@@ -9,11 +9,31 @@ export const getFileFromS3 = async (bucket: string, key: string) => {
     }),
   );
 
-  const stream = res.Body as ReadableStream<Uint8Array>;
+  const stream = res.Body;
+
+  if (!stream) {
+    throw new Error("No body returned from S3");
+  }
+
   const chunks: Uint8Array[] = [];
 
-  for await (const chunk of stream) {
-    chunks.push(chunk);
+  // Handle the stream as an async iterable
+  if (Symbol.asyncIterator in stream) {
+    for await (const chunk of stream as AsyncIterable<Uint8Array>) {
+      chunks.push(chunk);
+    }
+  } else {
+    // Fallback for streams without async iterator
+    const reader = (stream as ReadableStream<Uint8Array>).getReader();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
   }
 
   return Buffer.concat(chunks);

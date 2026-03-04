@@ -71,7 +71,7 @@
 
 ### AI & ML
 
-- **[Google Gemini AI](https://ai.google.dev/)** - Chat and embeddings (`gemini-1.5-flash`, `gemini-embedding-001`)
+- **[Google Gemini AI](https://ai.google.dev/)** - Chat and embeddings (`gemini-2.5-flash`, `gemini-embedding-001`)
 - **[Pinecone](https://www.pinecone.io/)** - Vector database for semantic search
 - **[Vercel AI SDK](https://sdk.vercel.ai/)** - Streaming AI responses
 

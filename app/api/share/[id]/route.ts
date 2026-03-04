@@ -5,13 +5,13 @@ import { headers } from "next/headers";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
     });
-    const shareId = params.id;
+    const { id: shareId } = await params;
 
     const share = await prisma.share.findUnique({
       where: { id: shareId },
