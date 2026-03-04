@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Upload, File, CheckCircle, X } from "lucide-react";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const Uploader = () => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -45,9 +46,11 @@ const Uploader = () => {
 
       setUploadStatus("success");
       setSelectedFiles([]);
+      toast.success("Files uploaded successfully!");
     } catch (error) {
       console.error("Upload failed", error);
       setUploadStatus("error");
+      toast.error("Failed to upload files. Please try again.");
     } finally {
       setIsUploading(false);
     }

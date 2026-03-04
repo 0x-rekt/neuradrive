@@ -7,6 +7,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import toast from "react-hot-toast";
 
 type ChatInterfaceProps = {
   file: any;
@@ -30,6 +31,7 @@ const ChatInterface = ({ file }: ChatInterfaceProps) => {
       setInput("");
     } catch (err) {
       console.error(err);
+      toast.error("Failed to send message. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -23,6 +23,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface DriveProps {
   folders: any[];
@@ -99,10 +100,12 @@ const Drive = ({
 
       setUploadStatus("success");
       setSelectedFiles([]);
+      toast.success("Files uploaded successfully!");
       router.refresh();
     } catch (error) {
       console.error("Upload failed", error);
       setUploadStatus("error");
+      toast.error("Failed to upload files. Please try again.");
     } finally {
       setIsUploading(false);
     }
@@ -119,9 +122,11 @@ const Drive = ({
       });
       setFolderName("");
       setShowCreateFolderDialog(false);
+      toast.success("Folder created successfully!");
       router.refresh();
     } catch (error) {
       console.error("Failed to create folder", error);
+      toast.error("Failed to create folder. Please try again.");
     } finally {
       setIsCreatingFolder(false);
     }
@@ -140,10 +145,12 @@ const Drive = ({
       setShareEmail("");
       setShowShareDialog(false);
       setShareItem(null);
-      // Could show a success message here
+      toast.success(
+        `${shareItem.type === "file" ? "File" : "Folder"} shared successfully!`,
+      );
     } catch (error) {
       console.error("Failed to share", error);
-      // Could show an error message here
+      toast.error("Failed to share. Please check the email and try again.");
     } finally {
       setIsSharing(false);
     }
@@ -180,10 +187,13 @@ const Drive = ({
       });
       setShowDeleteDialog(false);
       setDeleteItem(null);
+      toast.success(
+        `${deleteItem.type === "file" ? "File" : "Folder"} deleted successfully!`,
+      );
       router.refresh();
     } catch (error) {
       console.error("Failed to delete", error);
-      // Could show an error message here
+      toast.error("Failed to delete. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -316,6 +326,7 @@ const Drive = ({
       router.push(url);
     } catch (error) {
       console.error("Failed to open file", error);
+      toast.error("Failed to open file. Please try again.");
     }
   };
 
