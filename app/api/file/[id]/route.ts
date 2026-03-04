@@ -23,7 +23,10 @@ export const GET = async (
     const file = await prisma.file.findFirst({
       where: {
         id,
-        ownerId: session.user.id,
+        OR: [
+          { ownerId: session.user.id },
+          { shares: { some: { recipientId: session.user.id } } },
+        ],
       },
     });
 

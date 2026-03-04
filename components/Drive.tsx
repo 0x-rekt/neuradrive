@@ -16,6 +16,8 @@ import {
   CheckCircle,
   X,
   Plus,
+  Share,
+  Users,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "axios";
@@ -40,6 +42,15 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
   const [folderName, setFolderName] = useState("");
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareItem, setShareItem] = useState<{
+    id: string;
+    name: string;
+    type: "file" | "folder";
+  } | null>(null);
+  const [shareEmail, setShareEmail] = useState("");
+  const [shareRole, setShareRole] = useState<"VIEWER" | "EDITOR">("VIEWER");
+  const [isSharing, setIsSharing] = useState(false);
   const router = useRouter();
 
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -103,6 +114,37 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
     }
   };
 
+  const handleShare = async () => {
+    if (!shareItem || !shareEmail.trim()) return;
+
+    setIsSharing(true);
+    try {
+      await axios.post("/api/share", {
+        [shareItem.type === "file" ? "fileId" : "folderId"]: shareItem.id,
+        sharedWithEmail: shareEmail.trim(),
+        role: shareRole,
+      });
+      setShareEmail("");
+      setShowShareDialog(false);
+      setShareItem(null);
+      // Could show a success message here
+    } catch (error) {
+      console.error("Failed to share", error);
+      // Could show an error message here
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const openShareDialog = (item: {
+    id: string;
+    name: string;
+    type: "file" | "folder";
+  }) => {
+    setShareItem(item);
+    setShowShareDialog(true);
+  };
+
   const handleFileSelect = (files: File[]) => {
     setSelectedFiles(files);
     setUploadStatus("idle");
@@ -127,19 +169,30 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
   const getFileTypeLabel = (type: string) => {
     if (!type) return "FILE";
     if (type === "application/pdf") return "PDF";
-    if (type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return "DOCX";
+    if (
+      type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+      return "DOCX";
     if (type === "application/msword") return "DOC";
-    if (type === "application/vnd.openxmlformats-officedocument.presentationml.presentation") return "PPTX";
+    if (
+      type ===
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    )
+      return "PPTX";
     if (type === "application/vnd.ms-excel") return "XLS";
-    if (type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") return "XLSX";
+    if (
+      type ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+      return "XLSX";
     if (type === "text/plain") return "TXT";
     if (type === "text/csv") return "CSV";
     if (type === "application/json") return "JSON";
 
-    // Fallback logic for basic images/video (e.g "image/png" -> "PNG")
     const parts = type.split("/");
     if (parts.length > 1) {
-       return parts[1].toUpperCase();
+      return parts[1].toUpperCase();
     }
     return "FILE";
   };
@@ -190,7 +243,7 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
     try {
       const response = await axios.get(`/api/file/${fileId}`);
       const { url } = response.data;
-      window.open(url, "_blank");
+      router.push(url);
     } catch (error) {
       console.error("Failed to open file", error);
     }
@@ -238,12 +291,6 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
             </p>
           </div>
           <div className="flex gap-4">
-            <Button
-              onClick={() => router.push(`/chat/folder/${currentFolderId || 'root'}`)}
-              className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.3)]"
-            >
-              Chat {currentFolderId ? "with Folder" : "with Root"}
-            </Button>
             <Button
               onClick={() => setShowCreateFolderDialog(true)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 cursor-pointer"
@@ -437,19 +484,19 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                       </p>
                     </div>
                   </Link>
-
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-                    <Button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        router.push(`/chat/folder/${folder.id}`);
-                      }}
-                      className="bg-indigo-600/80 hover:bg-indigo-700 text-white px-3 py-1.5 h-auto rounded-md text-xs font-semibold backdrop-blur-sm"
-                    >
-                      Chat
-                    </Button>
-                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openShareDialog({
+                        id: folder.id,
+                        name: folder.name,
+                        type: "folder",
+                      });
+                    }}
+                    className="absolute top-2 right-2 p-2 hover:bg-white/5 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Share className="w-4 h-4 text-slate-400 hover:text-white" />
+                  </button>
                 </motion.div>
               ))}
             </div>
@@ -497,9 +544,24 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                       <div className="p-4 bg-white/3 rounded-2xl border border-white/5 group-hover:scale-110 group-hover:bg-violet-500/10 group-hover:border-violet-500/20 transition-all duration-500">
                         {getFileIcon(file.type)}
                       </div>
-                      <button className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                        <MoreVertical className="w-5 h-5 text-slate-500 group-hover:text-white" />
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openShareDialog({
+                              id: file.id,
+                              name: file.name,
+                              type: "file",
+                            });
+                          }}
+                          className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                        >
+                          <Share className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                        </button>
+                        <button className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                          <MoreVertical className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-3">
                       <h3 className="text-white font-medium text-base truncate group-hover:text-violet-300 transition-colors">
@@ -523,7 +585,10 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                           <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
                             Type
                           </span>
-                          <span className="text-xs text-indigo-400 font-medium truncate max-w-[80px]" title={file.type}>
+                          <span
+                            className="text-xs text-indigo-400 font-medium truncate max-w-[80px]"
+                            title={file.type}
+                          >
                             {getFileTypeLabel(file.type)}
                           </span>
                         </div>
@@ -587,6 +652,68 @@ const Drive = ({ folders = [], files = [], currentPath }: DriveProps) => {
                   className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-lg transition-all"
                 >
                   {isCreatingFolder ? "Creating..." : "Create"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {showShareDialog && shareItem && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Users className="w-6 h-6 text-indigo-400" />
+                <h3 className="text-xl font-bold text-white">
+                  Share {shareItem.type === "file" ? "File" : "Folder"}
+                </h3>
+              </div>
+              <p className="text-slate-300 text-sm mb-4">
+                Share "{shareItem.name}" with others
+              </p>
+              <input
+                type="email"
+                value={shareEmail}
+                onChange={(e) => setShareEmail(e.target.value)}
+                placeholder="Enter email address"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 mb-4"
+              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Permission Level
+                </label>
+                <select
+                  value={shareRole}
+                  onChange={(e) =>
+                    setShareRole(e.target.value as "VIEWER" | "EDITOR")
+                  }
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="VIEWER">Viewer - Can view only</option>
+                  <option value="EDITOR">Editor - Can view and edit</option>
+                </select>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowShareDialog(false);
+                    setShareEmail("");
+                    setShareItem(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleShare}
+                  disabled={isSharing || !shareEmail.trim()}
+                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-lg transition-all"
+                >
+                  {isSharing ? "Sharing..." : "Share"}
                 </button>
               </div>
             </motion.div>

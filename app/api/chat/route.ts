@@ -7,7 +7,9 @@ import { streamText } from "ai";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+const ai = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+});
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
 
 export const POST = async (req: NextRequest) => {
@@ -17,7 +19,13 @@ export const POST = async (req: NextRequest) => {
   const { messages, fileId } = await req.json();
 
   const file = await prisma.file.findFirst({
-    where: { id: fileId, ownerId: session.user.id },
+    where: {
+      id: fileId,
+      OR: [
+        { ownerId: session.user.id },
+        { shares: { some: { recipientId: session.user.id } } },
+      ],
+    },
   });
   if (!file) return new Response("File not found", { status: 404 });
 
@@ -45,7 +53,7 @@ export const POST = async (req: NextRequest) => {
     vector: embedding,
     topK: 5,
     includeMetadata: true,
-    filter: { fileId: { $eq: fileId }, userId: { $eq: session.user.id } },
+    filter: { fileId: { $eq: fileId } },
   });
 
   const context = searchRes.matches

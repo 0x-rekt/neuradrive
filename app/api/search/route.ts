@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
 });
 
 const pinecone = new Pinecone({

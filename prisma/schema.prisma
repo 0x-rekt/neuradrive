@@ -19,6 +19,8 @@ model User {
   accounts      Account[]
   folders       Folder[]
   files         File[]
+  ownedShares   Share[]   @relation("ShareOwner")
+  shares        Share[]   @relation("ShareRecipient")
 
   @@unique([email])
   @@map("user")
@@ -81,6 +83,7 @@ model Folder {
   parent    Folder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Cascade)
   children  Folder[] @relation("FolderToFolder")
   files     File[]
+  shares    Share[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -100,6 +103,7 @@ model File {
   folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
   status    FileStatus   @default(UPLOADED)
   textContent String?
+  shares    Share[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -112,4 +116,31 @@ enum FileStatus {
   PROCESSING
   READY
   FAILED
+}
+
+model Share {
+  id              String    @id @default(cuid())
+  fileId          String?
+  file            File?     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  folderId        String?
+  folder          Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  ownerId         String
+  owner           User      @relation("ShareOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  recipientId     String?
+  recipient       User?     @relation("ShareRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sharedWithEmail String
+  role            ShareRole @default(VIEWER)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([fileId, sharedWithEmail])
+  @@unique([folderId, sharedWithEmail])
+  @@index([ownerId])
+  @@index([recipientId])
+  @@map("share")
+}
+
+enum ShareRole {
+  VIEWER
+  EDITOR
 }

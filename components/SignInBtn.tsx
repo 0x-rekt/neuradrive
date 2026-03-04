@@ -7,7 +7,9 @@ const SignInBtn = () => {
     <motion.button
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      onClick={() => signIn.social({ provider: "google", callbackURL: "/" })}
+      onClick={() =>
+        signIn.social({ provider: "google", callbackURL: "/drive" })
+      }
       className="px-4 py-2 bg-white text-black rounded-full font-bold transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] cursor-pointer"
     >
       Get Started

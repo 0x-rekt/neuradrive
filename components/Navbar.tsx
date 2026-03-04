@@ -6,13 +6,10 @@ import {
   Search,
   Bell,
   LogOut,
-  Settings,
-  User,
-  Zap,
   ChevronDown,
   Sparkles,
 } from "lucide-react";
-import { useSession, signOut } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import { useRef, useState } from "react";
 import Image from "next/image";
 import SignInBtn from "./SignInBtn";
@@ -25,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const { data } = useSession();
@@ -33,6 +31,7 @@ const Navbar = () => {
   const [loadingResults, setLoadingResults] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const debounceRef = useRef<number | null>(null);
+  const router = useRouter();
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-md border-b border-white/8 saturate-150">
@@ -197,21 +196,17 @@ const Navbar = () => {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-white/5 mx-2" />
-                    <div className="space-y-1 p-1">
-                      <DropdownMenuItem className="rounded-lg py-2.5 focus:bg-white/5 cursor-pointer gap-3">
-                        <User className="w-4 h-4 text-slate-400" /> Profile
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="rounded-lg py-2.5 focus:bg-indigo-500/10 focus:text-indigo-400 cursor-pointer gap-3">
-                        <Zap className="w-4 h-4 text-indigo-400" /> Upgrade to
-                        Pro
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="rounded-lg py-2.5 focus:bg-white/5 cursor-pointer gap-3">
-                        <Settings className="w-4 h-4 text-slate-400" /> Settings
-                      </DropdownMenuItem>
-                    </div>
-                    <DropdownMenuSeparator className="bg-white/5 mx-2" />
+
                     <DropdownMenuItem
-                      onClick={() => signOut()}
+                      onClick={async () =>
+                        await authClient.signOut({
+                          fetchOptions: {
+                            onSuccess: () => {
+                              router.push("/");
+                            },
+                          },
+                        })
+                      }
                       className="m-1 rounded-lg py-2.5 focus:bg-red-500/10 focus:text-red-400 text-red-400 cursor-pointer gap-3"
                     >
                       <LogOut className="w-4 h-4" /> Sign Out

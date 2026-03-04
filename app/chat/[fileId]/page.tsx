@@ -14,7 +14,13 @@ const ChatPage = async ({
   if (!session?.user) redirect("/");
 
   const file = await prisma.file.findFirst({
-    where: { id: fileId, ownerId: session.user.id },
+    where: {
+      id: fileId,
+      OR: [
+        { ownerId: session.user.id },
+        { shares: { some: { recipientId: session.user.id } } },
+      ],
+    },
   });
   if (!file) redirect("/drive");
 

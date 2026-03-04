@@ -15,12 +15,24 @@ const page = async ({ params }: { params: Promise<{ all: string[] }> }) => {
   if (!session?.user) redirect("/");
 
   const folders = await prisma.folder.findMany({
-    where: { userId: session?.user?.id, parentId: folderId },
+    where: {
+      parentId: folderId,
+      OR: [
+        { userId: session?.user?.id },
+        { shares: { some: { recipientId: session?.user?.id } } },
+      ],
+    },
     orderBy: { createdAt: "desc" },
   });
 
   const files = await prisma.file.findMany({
-    where: { ownerId: session?.user?.id, folderId: folderId },
+    where: {
+      folderId: folderId,
+      OR: [
+        { ownerId: session?.user?.id },
+        { shares: { some: { recipientId: session?.user?.id } } },
+      ],
+    },
     orderBy: { createdAt: "desc" },
   });
 

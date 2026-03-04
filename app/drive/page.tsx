@@ -20,12 +20,24 @@ const Page = async () => {
   }
 
   const folders = await prisma.folder.findMany({
-    where: { userId: session.user.id, parentId: null },
+    where: {
+      parentId: null,
+      OR: [
+        { userId: session.user.id },
+        { shares: { some: { recipientId: session.user.id } } },
+      ],
+    },
     orderBy: { createdAt: "desc" },
   });
 
   const files = await prisma.file.findMany({
-    where: { ownerId: session.user.id, folderId: null },
+    where: {
+      folderId: null,
+      OR: [
+        { ownerId: session.user.id },
+        { shares: { some: { recipientId: session.user.id } } },
+      ],
+    },
     orderBy: { createdAt: "desc" },
   });
 

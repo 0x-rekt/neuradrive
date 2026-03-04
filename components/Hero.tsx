@@ -1,9 +1,14 @@
 "use client";
 
+import { signIn, useSession } from "@/lib/auth-client";
 import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const Hero = () => {
+  const { data } = useSession();
+  const router = useRouter();
+
   return (
     <section className="relative pt-28 pb-24 overflow-hidden bg-black">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
@@ -33,7 +38,7 @@ const Hero = () => {
         >
           <Zap className="w-3.5 h-3.5 fill-indigo-400" />
           <span className="tracking-wider uppercase">
-            Neural Engine v2.0 Active
+            Neural Engine v1.0 Active
           </span>
         </motion.div>
 
@@ -64,12 +69,21 @@ const Hero = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="px-10 py-4 bg-white text-black rounded-full font-bold transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] cursor-pointer"
+            onClick={
+              data
+                ? () => {
+                    router.push("/drive");
+                  }
+                : () => {
+                    signIn.social({
+                      provider: "google",
+                      callbackURL: "/drive",
+                    });
+                  }
+            }
           >
-            Deploy NeuraDrive
+            {data ? "Go to Drive" : "Get Started"}
           </motion.button>
-          <button className="px-10 py-4 bg-transparent text-white rounded-full font-medium border border-white/10 hover:bg-white/5 transition-all cursor-pointer">
-            System Overview
-          </button>
         </div>
       </div>
     </section>

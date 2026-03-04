@@ -8,7 +8,7 @@ const pinecone = new Pinecone({
 const index = pinecone.index(process.env.PINECONE_INDEX!);
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
 });
 
 export const storeEmbeddings = async (
