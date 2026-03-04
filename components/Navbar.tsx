@@ -36,10 +36,10 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-md border-b border-white/8 saturate-150">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-0 py-3 md:py-0 md:h-16">
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-2.5 group cursor-pointer"
+            className="flex items-center justify-between md:justify-start gap-2.5 group cursor-pointer"
           >
             <div className="relative">
               <div className="absolute inset-0 bg-indigo-500 blur-lg opacity-20 group-hover:opacity-40 transition-opacity" />
@@ -56,10 +56,64 @@ const Navbar = () => {
                 Drive
               </span>
             </Link>
+
+            <div className="md:hidden flex items-center gap-4 ml-auto">
+              {data?.user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-white/5 border border-transparent hover:border-white/10 transition-all focus:outline-none cursor-pointer">
+                    <div className="relative">
+                      <Image
+                        src={data.user.image || "/images/default-avatar.png"}
+                        width={32}
+                        height={32}
+                        alt="User"
+                        className="rounded-full ring-1 ring-white/20"
+                      />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-black rounded-full" />
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-64 mt-2 bg-[#0a0a0c] border-white/10 text-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl rounded-2xl p-2 overflow-hidden"
+                  >
+                    <DropdownMenuLabel className="p-3">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-semibold text-white">
+                          {data.user.name}
+                        </p>
+                        <p className="text-xs text-slate-500 font-medium">
+                          {data.user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-white/5 mx-2" />
+
+                    <DropdownMenuItem
+                      onClick={async () =>
+                        await authClient.signOut({
+                          fetchOptions: {
+                            onSuccess: () => {
+                              router.push("/");
+                            },
+                          },
+                        })
+                      }
+                      className="m-1 rounded-lg py-2.5 focus:bg-red-500/10 focus:text-red-400 text-red-400 cursor-pointer gap-3"
+                    >
+                      <LogOut className="w-4 h-4" /> Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <SignInBtn />
+              )}
+            </div>
           </motion.div>
 
           {data?.user && (
-            <div className="hidden md:flex flex-1 max-w-md mx-8">
+            <div className="flex md:flex-1 md:max-w-md md:mx-8 w-full">
               <div className="relative w-full group">
                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                   <Search className="h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
@@ -107,7 +161,7 @@ const Navbar = () => {
                   onBlur={() => setTimeout(() => setShowResults(false), 150)}
                 />
                 {showResults && (
-                  <div className="absolute left-0 right-0 mt-2 bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-lg overflow-hidden z-50">
+                  <div className="absolute left-0 right-0 mt-2 bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-lg overflow-hidden z-50 max-w-full">
                     <div className="max-h-72 overflow-auto">
                       {loadingResults ? (
                         <div className="p-3 text-sm text-slate-400">
@@ -158,14 +212,9 @@ const Navbar = () => {
             </div>
           )}
 
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
             {data?.user ? (
               <>
-                <button className="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-black" />
-                </button>
-
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-white/5 border border-transparent hover:border-white/10 transition-all focus:outline-none cursor-pointer">
                     <div className="relative">

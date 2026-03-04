@@ -8,7 +8,6 @@ import {
   Image as ImageIcon,
   Video,
   Music,
-  MoreVertical,
   File,
   Clock,
   HardDrive,
@@ -210,13 +209,11 @@ const Drive = ({
   };
 
   const canShare = (item: any, type: "file" | "folder"): boolean => {
-    // Check if user is the owner
     const isOwner =
       type === "file"
         ? item.ownerId === currentUserId
         : item.userId === currentUserId;
 
-    // Check if user has EDITOR access through shares
     const hasEditorAccess =
       item.shares && item.shares.some((share: any) => share.role === "EDITOR");
 
@@ -231,7 +228,7 @@ const Drive = ({
   };
 
   const getFileIcon = (type: string) => {
-    const iconClass = "w-6 h-6 text-indigo-400";
+    const iconClass = "w-5 h-5 md:w-6 md:h-6 text-indigo-400";
     if (type.startsWith("image/")) return <ImageIcon className={iconClass} />;
     if (type.startsWith("video/")) return <Video className={iconClass} />;
     if (type.startsWith("audio/")) return <Music className={iconClass} />;
@@ -273,12 +270,12 @@ const Drive = ({
   const getStatusBadge = (status: string) => {
     const s = (status || "").toUpperCase();
     const base =
-      "inline-flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded-full";
+      "inline-flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-semibold px-2 md:px-2.5 py-0.5 md:py-1 rounded-full";
 
     if (s === "PROCESSING") {
       return (
         <div className={base + " bg-violet-700/10 text-violet-300"}>
-          <div className="w-4 h-4 border-2 border-violet-300 border-t-transparent rounded-full animate-spin" />
+          <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-violet-300 border-t-transparent rounded-full animate-spin" />
           <span>Processing</span>
         </div>
       );
@@ -287,7 +284,7 @@ const Drive = ({
     if (s === "READY") {
       return (
         <div className={base + " bg-green-700/10 text-green-300"}>
-          <CheckCircle className="w-4 h-4 text-green-300" />
+          <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-300" />
           <span>Ready</span>
         </div>
       );
@@ -296,7 +293,7 @@ const Drive = ({
     if (s === "FAILED") {
       return (
         <div className={base + " bg-red-700/10 text-red-300"}>
-          <X className="w-4 h-4 text-red-300" />
+          <X className="w-3 h-3 md:w-4 md:h-4 text-red-300" />
           <span>Failed</span>
         </div>
       );
@@ -304,7 +301,7 @@ const Drive = ({
 
     return (
       <div className={base + " bg-indigo-700/10 text-indigo-300"}>
-        <Upload className="w-4 h-4 text-indigo-300" />
+        <Upload className="w-3 h-3 md:w-4 md:h-4 text-indigo-300" />
         <span>
           {s === "" ? "Unknown" : s.charAt(0) + s.slice(1).toLowerCase()}
         </span>
@@ -323,10 +320,10 @@ const Drive = ({
   };
 
   return (
-    <div className="min-h-screen bg-black text-slate-200 p-4 md:p-8 pt-32">
+    <div className="min-h-screen bg-black text-slate-200 p-4 md:p-8 pt-20 md:pt-32">
       <div className="max-w-7xl mx-auto">
         {currentPath.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <Link
               href={
                 currentPath.length === 1
@@ -352,28 +349,29 @@ const Drive = ({
             </Link>
           </div>
         )}
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-0 mb-8 md:mb-12">
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
-              <HardDrive className="text-indigo-500 w-8 h-8" />
+            <h1 className="text-2xl md:text-3xl font-black text-white tracking-tighter flex items-center gap-2 md:gap-3">
+              <HardDrive className="text-indigo-500 w-6 h-6 md:w-8 md:h-8" />
               My Cloud
             </h1>
-            <p className="text-slate-500 text-sm mt-1 font-light">
+            <p className="text-slate-500 text-xs md:text-sm mt-1 font-light">
               Managing {folders.length > 0 ? folders.length : "no"} folders and{" "}
               {files.length > 0 ? files.length : "no"} neural assets
             </p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
             <Button
               onClick={() => setShowCreateFolderDialog(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 cursor-pointer"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
-              Create Folder
+              <span className="hidden sm:inline">Create Folder</span>
+              <span className="sm:hidden">New Folder</span>
             </Button>
             <Button
               onClick={() => setShowUploader(!showUploader)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-full font-semibold text-sm transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] cursor-pointer"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-full font-semibold text-sm transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] cursor-pointer w-full sm:w-auto"
             >
               + Upload Files
             </Button>
@@ -385,7 +383,7 @@ const Drive = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-12 max-w-2xl mx-auto"
+            className="mb-8 md:mb-12 max-w-2xl mx-auto"
           >
             <form onSubmit={handleUpload} className="space-y-6">
               <div
@@ -449,10 +447,10 @@ const Drive = ({
                         <Upload className="w-12 h-12 text-indigo-400" />
                       </div>
                       <div>
-                        <p className="text-white font-medium text-xl mb-2">
+                        <p className="text-white font-medium text-lg md:text-xl mb-2">
                           Drag & drop your files here
                         </p>
-                        <p className="text-slate-500">
+                        <p className="text-slate-500 text-sm md:text-base">
                           or click to browse files
                         </p>
                       </div>
@@ -509,10 +507,10 @@ const Drive = ({
           </motion.div>
         )}
 
-        <div className="mb-12">
-          <div className="flex items-center gap-2 mb-6 text-white/80">
+        <div className="mb-8 md:mb-12">
+          <div className="flex items-center gap-2 mb-4 md:mb-6 text-white/80">
             <FolderIcon className="w-4 h-4 text-indigo-400" />
-            <h2 className="text-sm font-bold uppercase tracking-widest">
+            <h2 className="text-xs md:text-sm font-bold uppercase tracking-widest">
               Directories
             </h2>
           </div>
@@ -521,16 +519,18 @@ const Drive = ({
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="border border-dashed border-white/10 rounded-3xl p-12 text-center"
+              className="border border-dashed border-white/10 rounded-3xl p-6 md:p-12 text-center"
             >
-              <FolderIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-600 mb-2">No directories created yet.</p>
-              <p className="text-slate-500 text-sm">
+              <FolderIcon className="w-10 h-10 md:w-12 md:h-12 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-600 text-sm md:text-base mb-2">
+                No directories created yet.
+              </p>
+              <p className="text-slate-500 text-xs md:text-sm">
                 Create your first folder to organize your files.
               </p>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {folders.map((folder, index) => (
                 <motion.div
                   key={folder.id}
@@ -538,26 +538,26 @@ const Drive = ({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ y: -2 }}
-                  className="group relative bg-white/2 border border-white/5 hover:border-indigo-500/40 hover:bg-white/4 p-4 rounded-2xl transition-all duration-300"
+                  className="group relative bg-white/2 border border-white/5 hover:border-indigo-500/40 hover:bg-white/4 p-3 md:p-4 rounded-2xl transition-all duration-300"
                 >
                   <Link
                     href={`/drive/${[...currentPath, folder.id].join("/")}`}
-                    className="flex items-center gap-4"
+                    className="flex items-center gap-3 md:gap-4"
                   >
-                    <div className="bg-indigo-500/10 p-3 rounded-xl group-hover:scale-110 transition-transform">
-                      <FolderIcon className="w-6 h-6 text-indigo-400 fill-indigo-400/20" />
+                    <div className="bg-indigo-500/10 p-2 md:p-3 rounded-xl group-hover:scale-110 transition-transform">
+                      <FolderIcon className="w-5 h-5 md:w-6 md:h-6 text-indigo-400 fill-indigo-400/20" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white font-semibold truncate text-sm">
+                      <p className="text-white font-semibold truncate text-xs md:text-sm">
                         {folder.name}
                       </p>
-                      <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 uppercase tracking-tighter">
+                      <p className="text-[9px] md:text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 uppercase tracking-tighter">
                         <Clock className="w-3 h-3" />
                         {new Date(folder.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </Link>
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100">
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100">
                     {canShare(folder, "folder") && (
                       <button
                         onClick={(e) => {
@@ -596,9 +596,9 @@ const Drive = ({
         </div>
 
         <div>
-          <div className="flex items-center gap-2 mb-6 text-white/80">
+          <div className="flex items-center gap-2 mb-4 md:mb-6 text-white/80">
             <File className="w-4 h-4 text-violet-400" />
-            <h2 className="text-sm font-bold uppercase tracking-widest">
+            <h2 className="text-xs md:text-sm font-bold uppercase tracking-widest">
               Neural Assets
             </h2>
           </div>
@@ -607,16 +607,18 @@ const Drive = ({
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="border border-dashed border-white/10 rounded-3xl p-12 text-center"
+              className="border border-dashed border-white/10 rounded-3xl p-6 md:p-12 text-center"
             >
-              <File className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-600 mb-2">Your drive is empty.</p>
-              <p className="text-slate-500 text-sm">
+              <File className="w-10 h-10 md:w-12 md:h-12 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-600 text-sm md:text-base mb-2">
+                Your drive is empty.
+              </p>
+              <p className="text-slate-500 text-xs md:text-sm">
                 Upload your first file to get started.
               </p>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {files.map((file, index) => (
                 <motion.div
                   key={file.id}
@@ -630,13 +632,13 @@ const Drive = ({
 
                   <div
                     onClick={() => handleFileOpen(file.id)}
-                    className="relative bg-[#0a0a0a] border border-white/5 group-hover:border-violet-500/40 p-6 rounded-[2rem] transition-all duration-300 cursor-pointer h-full flex flex-col justify-between overflow-hidden"
+                    className="relative bg-[#0a0a0a] border border-white/5 group-hover:border-violet-500/40 p-4 md:p-6 rounded-[2rem] transition-all duration-300 cursor-pointer h-full flex flex-col justify-between overflow-hidden"
                   >
-                    <div className="flex justify-between items-start mb-8">
-                      <div className="p-4 bg-white/3 rounded-2xl border border-white/5 group-hover:scale-110 group-hover:bg-violet-500/10 group-hover:border-violet-500/20 transition-all duration-500">
+                    <div className="flex justify-between items-start mb-4 md:mb-8">
+                      <div className="p-3 md:p-4 bg-white/3 rounded-2xl border border-white/5 group-hover:scale-110 group-hover:bg-violet-500/10 group-hover:border-violet-500/20 transition-all duration-500">
                         {getFileIcon(file.type)}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1 md:gap-2">
                         {canShare(file, "file") && (
                           <button
                             onClick={(e) => {
@@ -647,9 +649,9 @@ const Drive = ({
                                 type: "file",
                               });
                             }}
-                            className="p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                            className="p-1.5 md:p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer"
                           >
-                            <Share className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                            <Share className="w-4 h-4 md:w-5 md:h-5 text-slate-500 group-hover:text-white" />
                           </button>
                         )}
                         {canDelete(file, "file") && (
@@ -662,15 +664,15 @@ const Drive = ({
                                 type: "file",
                               });
                             }}
-                            className="p-2 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer"
+                            className="p-1.5 md:p-2 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer"
                           >
-                            <Trash2 className="w-5 h-5 text-slate-500 hover:text-red-400" />
+                            <Trash2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500 hover:text-red-400" />
                           </button>
                         )}
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <h3 className="text-white font-medium text-base truncate group-hover:text-violet-300 transition-colors">
+                    <div className="space-y-2 md:space-y-3">
+                      <h3 className="text-white font-medium text-sm md:text-base truncate group-hover:text-violet-300 transition-colors">
                         {file.name}
                       </h3>
 
@@ -680,33 +682,33 @@ const Drive = ({
 
                       <div className="flex items-center justify-between pt-2 border-t border-white/3">
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                          <span className="text-[9px] md:text-[10px] text-slate-500 uppercase tracking-widest font-bold">
                             Size
                           </span>
-                          <span className="text-xs text-slate-300 font-mono">
+                          <span className="text-[11px] md:text-xs text-slate-300 font-mono">
                             {formatSize(file.size)}
                           </span>
                         </div>
                         <div className="flex flex-col items-end">
-                          <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                          <span className="text-[9px] md:text-[10px] text-slate-500 uppercase tracking-widest font-bold">
                             Type
                           </span>
                           <span
-                            className="text-xs text-indigo-400 font-medium truncate max-w-20"
+                            className="text-[11px] md:text-xs text-indigo-400 font-medium truncate max-w-16 md:max-w-20"
                             title={file.type}
                           >
                             {getFileTypeLabel(file.type)}
                           </span>
                         </div>
                       </div>
-                      <div className="mt-4 flex justify-end">
+                      <div className="mt-3 md:mt-4 flex justify-end">
                         {file.status === "READY" && (
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
                               router.push(`/chat/${file.id}`);
                             }}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 cursor-pointer rounded-md text-sm"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 cursor-pointer rounded-md text-xs md:text-sm"
                           >
                             Chat
                           </Button>
@@ -729,7 +731,7 @@ const Drive = ({
               exit={{ opacity: 0, scale: 0.9 }}
               className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 max-w-md w-full"
             >
-              <h3 className="text-xl font-bold text-white mb-4">
+              <h3 className="text-lg md:text-xl font-bold text-white mb-4">
                 Create New Folder
               </h3>
               <input
@@ -775,12 +777,12 @@ const Drive = ({
               className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 max-w-md w-full"
             >
               <div className="flex items-center gap-3 mb-4">
-                <Users className="w-6 h-6 text-indigo-400" />
-                <h3 className="text-xl font-bold text-white">
+                <Users className="w-5 h-5 md:w-6 md:h-6 text-indigo-400" />
+                <h3 className="text-lg md:text-xl font-bold text-white">
                   Share {shareItem.type === "file" ? "File" : "Folder"}
                 </h3>
               </div>
-              <p className="text-slate-300 text-sm mb-4">
+              <p className="text-slate-300 text-xs md:text-sm mb-4">
                 Share "{shareItem.name}" with others
               </p>
               <input
@@ -842,17 +844,17 @@ const Drive = ({
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-red-500/10 rounded-full">
-                  <Trash2 className="w-6 h-6 text-red-400" />
+                  <Trash2 className="w-5 h-5 md:w-6 md:h-6 text-red-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white">
+                <h3 className="text-lg md:text-xl font-bold text-white">
                   Delete {deleteItem.type === "file" ? "File" : "Folder"}?
                 </h3>
               </div>
-              <p className="text-slate-300 text-sm mb-2">
+              <p className="text-slate-300 text-xs md:text-sm mb-2">
                 Are you sure you want to delete "{deleteItem.name}"?
               </p>
               {deleteItem.type === "folder" && (
-                <p className="text-red-400 text-sm mb-4">
+                <p className="text-red-400 text-xs md:text-sm mb-4">
                   Warning: This will also delete all files and subfolders inside
                   it.
                 </p>
