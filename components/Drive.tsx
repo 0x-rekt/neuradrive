@@ -208,6 +208,20 @@ const Drive = ({
 
     return isOwner || hasEditorAccess;
   };
+
+  const canShare = (item: any, type: "file" | "folder"): boolean => {
+    // Check if user is the owner
+    const isOwner =
+      type === "file"
+        ? item.ownerId === currentUserId
+        : item.userId === currentUserId;
+
+    // Check if user has EDITOR access through shares
+    const hasEditorAccess =
+      item.shares && item.shares.some((share: any) => share.role === "EDITOR");
+
+    return isOwner || hasEditorAccess;
+  };
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -544,19 +558,21 @@ const Drive = ({
                     </div>
                   </Link>
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        openShareDialog({
-                          id: folder.id,
-                          name: folder.name,
-                          type: "folder",
-                        });
-                      }}
-                      className="p-2 hover:bg-white/5 rounded-full transition-colors"
-                    >
-                      <Share className="w-4 h-4 text-slate-400 hover:text-white" />
-                    </button>
+                    {canShare(folder, "folder") && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openShareDialog({
+                            id: folder.id,
+                            name: folder.name,
+                            type: "folder",
+                          });
+                        }}
+                        className="p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                      >
+                        <Share className="w-4 h-4 text-slate-400 hover:text-white" />
+                      </button>
+                    )}
                     {canDelete(folder, "folder") && (
                       <button
                         onClick={(e) => {
@@ -567,7 +583,7 @@ const Drive = ({
                             type: "folder",
                           });
                         }}
-                        className="p-2 hover:bg-red-500/10 rounded-full transition-colors"
+                        className="p-2 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-400" />
                       </button>
@@ -621,19 +637,21 @@ const Drive = ({
                         {getFileIcon(file.type)}
                       </div>
                       <div className="flex gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openShareDialog({
-                              id: file.id,
-                              name: file.name,
-                              type: "file",
-                            });
-                          }}
-                          className="p-2 hover:bg-white/5 rounded-full transition-colors"
-                        >
-                          <Share className="w-5 h-5 text-slate-500 group-hover:text-white" />
-                        </button>
+                        {canShare(file, "file") && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openShareDialog({
+                                id: file.id,
+                                name: file.name,
+                                type: "file",
+                              });
+                            }}
+                            className="p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                          >
+                            <Share className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                          </button>
+                        )}
                         {canDelete(file, "file") && (
                           <button
                             onClick={(e) => {
@@ -644,7 +662,7 @@ const Drive = ({
                                 type: "file",
                               });
                             }}
-                            className="p-2 hover:bg-red-500/10 rounded-full transition-colors"
+                            className="p-2 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-5 h-5 text-slate-500 hover:text-red-400" />
                           </button>
@@ -674,7 +692,7 @@ const Drive = ({
                             Type
                           </span>
                           <span
-                            className="text-xs text-indigo-400 font-medium truncate max-w-[80px]"
+                            className="text-xs text-indigo-400 font-medium truncate max-w-20"
                             title={file.type}
                           >
                             {getFileTypeLabel(file.type)}
@@ -682,15 +700,17 @@ const Drive = ({
                         </div>
                       </div>
                       <div className="mt-4 flex justify-end">
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/chat/${file.id}`);
-                          }}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm"
-                        >
-                          Chat
-                        </Button>
+                        {file.status === "READY" && (
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/chat/${file.id}`);
+                            }}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 cursor-pointer rounded-md text-sm"
+                          >
+                            Chat
+                          </Button>
+                        )}
                       </div>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-violet-500/20 to-transparent opacity-0 group-hover:opacity-100" />
@@ -730,14 +750,14 @@ const Drive = ({
                     setShowCreateFolderDialog(false);
                     setFolderName("");
                   }}
-                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateFolder}
                   disabled={isCreatingFolder || !folderName.trim()}
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-lg transition-all cursor-pointer"
                 >
                   {isCreatingFolder ? "Creating..." : "Create"}
                 </button>
@@ -779,10 +799,14 @@ const Drive = ({
                   onChange={(e) =>
                     setShareRole(e.target.value as "VIEWER" | "EDITOR")
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
-                  <option value="VIEWER">Viewer - Can view only</option>
-                  <option value="EDITOR">Editor - Can view and edit</option>
+                  <option value="VIEWER" className="bg-gray-900 text-white">
+                    Viewer - Can view only
+                  </option>
+                  <option value="EDITOR" className="bg-gray-900 text-white">
+                    Editor - Can view and edit
+                  </option>
                 </select>
               </div>
               <div className="flex gap-3">
@@ -792,14 +816,14 @@ const Drive = ({
                     setShareEmail("");
                     setShareItem(null);
                   }}
-                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleShare}
                   disabled={isSharing || !shareEmail.trim()}
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-lg transition-all cursor-pointer"
                 >
                   {isSharing ? "Sharing..." : "Share"}
                 </button>
@@ -842,14 +866,14 @@ const Drive = ({
                     setShowDeleteDialog(false);
                     setDeleteItem(null);
                   }}
-                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 text-white rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 text-white rounded-lg transition-all cursor-pointer"
                 >
                   {isDeleting ? "Deleting..." : "Delete"}
                 </button>

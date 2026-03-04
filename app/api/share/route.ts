@@ -43,13 +43,29 @@ export async function POST(request: NextRequest) {
     if (fileId) {
       const file = await prisma.file.findUnique({
         where: { id: fileId },
-        select: { ownerId: true },
+        include: {
+          shares: {
+            where: {
+              sharedWithEmail: session.user.email!,
+            },
+          },
+        },
       });
 
-      if (!file || file.ownerId !== session.user.id) {
+      if (!file) {
+        return NextResponse.json({ error: "File not found" }, { status: 404 });
+      }
+
+      // Check if user is owner or has EDITOR access
+      const isOwner = file.ownerId === session.user.id;
+      const hasEditorAccess = file.shares.some(
+        (share) => share.role === "EDITOR",
+      );
+
+      if (!isOwner && !hasEditorAccess) {
         return NextResponse.json(
-          { error: "File not found or access denied" },
-          { status: 404 },
+          { error: "You don't have permission to share this file" },
+          { status: 403 },
         );
       }
     }
@@ -57,13 +73,32 @@ export async function POST(request: NextRequest) {
     if (folderId) {
       const folder = await prisma.folder.findUnique({
         where: { id: folderId },
-        select: { userId: true },
+        include: {
+          shares: {
+            where: {
+              sharedWithEmail: session.user.email!,
+            },
+          },
+        },
       });
 
-      if (!folder || folder.userId !== session.user.id) {
+      if (!folder) {
         return NextResponse.json(
-          { error: "Folder not found or access denied" },
+          { error: "Folder not found" },
           { status: 404 },
+        );
+      }
+
+      // Check if user is owner or has EDITOR access
+      const isOwner = folder.userId === session.user.id;
+      const hasEditorAccess = folder.shares.some(
+        (share) => share.role === "EDITOR",
+      );
+
+      if (!isOwner && !hasEditorAccess) {
+        return NextResponse.json(
+          { error: "You don't have permission to share this folder" },
+          { status: 403 },
         );
       }
     }
